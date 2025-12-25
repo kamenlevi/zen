@@ -174,6 +174,8 @@ const App: React.FC = () => {
       if (!valid) { 
         setIsWordleValidating(false);
         setWordleShakeTrigger(p => p + 1); 
+        // Reset shake trigger after animation finishes
+        setTimeout(() => setWordleShakeTrigger(0), 500);
         return; 
       }
       const feedback = getWordFeedback(wordToValidate, targetWord);
@@ -435,7 +437,7 @@ const App: React.FC = () => {
                     <div className="bg-zinc-50 rounded-[2.5rem] p-6 border border-zinc-100 mb-8">
                       <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
                       <p className="text-xl font-black uppercase tracking-tight truncate px-2">
-                        {activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}
+                        {activeGameType === 'sudoku' ? 'SUDOKU GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}
                       </p>
                       {wordExplanation && <p className="mt-3 text-[11px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
                       

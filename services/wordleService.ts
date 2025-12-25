@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { Difficulty, WordleStatus } from '../types.ts';
 
 const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
@@ -11,21 +11,29 @@ const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
 };
 
 /**
- * Heuristic check for junk words like "AAAAA", "ZZZZZ", or "ABABAB".
- * Returns false if the word looks like keyboard mashing or repetitive junk.
+ * Robust heuristic to catch junk input immediately.
  */
-function isHeuristicJunk(word: string): boolean {
-  const chars = word.toUpperCase().split('');
-  const uniqueChars = new Set(chars);
+function isDefinitelyJunk(word: string): boolean {
+  const w = word.toUpperCase();
+  const chars = w.split('');
+  const unique = new Set(chars);
   
-  // Rule 1: Too few unique characters (e.g., AAAAA, AAABA)
-  if (uniqueChars.size <= 1) return true;
+  // 1. All same letters (AAAAA)
+  if (unique.size <= 1) return true;
   
-  // Rule 2: 4 or more of the same character (e.g., AAAAB)
+  // 2. Keyboard mashes (ASDFG, QWERT)
+  const mashes = ['ASDFG', 'QWERT', 'ZXCVB', '12345'];
+  if (mashes.includes(w)) return true;
+
+  // 3. No vowels (unless it's a very rare word, but for Wordle we want real words)
+  // Standard English words almost always have A, E, I, O, U, or Y.
+  if (!/[AEIOUY]/.test(w)) return true;
+
+  // 4. Repetition of 4 or more letters (e.g., AAABA)
   const counts: Record<string, number> = {};
-  for (const char of chars) {
-    counts[char] = (counts[char] || 0) + 1;
-    if (counts[char] >= 4) return true;
+  for (const c of chars) {
+    counts[c] = (counts[c] || 0) + 1;
+    if (counts[c] >= 4) return true;
   }
 
   return false;
@@ -37,80 +45,40 @@ export function generateWordleWord(difficulty: Difficulty): string {
 }
 
 /**
- * Validates a word using the Gemini Pro API with deep reasoning (Thinking Budget).
- * This ensures the model actually evaluates the word against linguistic rules 
- * rather than guessing or hallucinating validity for mashing.
+ * Validates a word using the Gemini API. 
+ * This version uses a simple, highly reliable prompt to avoid JSON parsing errors.
  */
 export async function isValidWord(word: string): Promise<boolean> {
   if (!word || word.length !== 5) return false;
   const w = word.toUpperCase();
 
-  // 1. Instant Junk Filter
-  if (isHeuristicJunk(w)) {
-    console.debug(`[Wordle] Word "${w}" rejected by junk heuristics.`);
-    return false;
-  }
+  // 1. Check local heuristics first
+  if (isDefinitelyJunk(w)) return false;
 
-  // 2. Internal dictionary check for level-specific words
+  // 2. Check internal lists
   for (const level of Object.values(WORDS_BY_DIFFICULTY)) {
     if (level.includes(w)) return true;
   }
 
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === 'undefined') {
-    console.warn("[Wordle] No API key detected. Validation limited to internal lists and heuristics.");
-    // If no API key, and not in internal list, we assume it's valid if it passed junk check
-    // to avoid breaking the game for users without keys, unless it's obviously junk.
-    return !isHeuristicJunk(w);
+    // Without API key, allow if it passed junk check to not break the game
+    return true; 
   }
 
-  // 3. High-Quality Pro Validation with Thinking Budget
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `You are a world-class lexicographer and Wordle adjudicator.
-      
-      WORD TO INVESTIGATE: "${w}"
-      
-      YOUR MISSION:
-      Determine if "${w}" is a legitimate 5-letter English word found in standard English dictionaries (Oxford, Merriam-Webster, etc.).
-      
-      CRITERIA:
-      - Reject keyboard mashing (e.g., "ASDFG").
-      - Reject repetitive character strings (e.g., "AAAAA").
-      - Accept obscure words if they are real (e.g., "XYLEM").
-      - Accept common pluralizations or verb forms.
-      
-      Respond STRICTLY in JSON format.`,
-      config: { 
-        // Enable deep reasoning to prevent hallucinations on "mashing" words
-        thinkingConfig: { thinkingBudget: 2000 },
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isValid: {
-              type: Type.BOOLEAN,
-              description: "Whether the word is found in a standard English dictionary."
-            },
-            reasoning: {
-              type: Type.STRING,
-              description: "Short linguistic justification."
-            }
-          },
-          required: ["isValid"]
-        }
-      }
+      model: 'gemini-3-flash-preview',
+      contents: `Is the sequence of letters "${w}" a valid English word? Answer only with "VALID" or "INVALID".`,
     });
 
-    const result = JSON.parse(response.text || '{"isValid": true}');
-    console.debug(`[Wordle] API result for "${w}":`, result);
-    return result.isValid;
+    const result = response.text?.trim().toUpperCase();
+    return result === 'VALID';
   } catch (e) {
-    console.error("[Wordle] Validation API error:", e);
-    // On API failure, allow the word if it passed junk check to prevent game block
-    return true; 
+    console.error("[Wordle] API Check Error:", e);
+    // On error, fall back to our junk filter
+    return !isDefinitelyJunk(w);
   }
 }
 
