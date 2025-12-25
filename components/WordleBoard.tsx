@@ -48,7 +48,7 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
                   className={`
                     w-[min(14vw,58px)] h-[min(14vw,58px)] sm:w-[68px] sm:h-[68px]
                     flex items-center justify-center 
-                    text-xl sm:text-3xl font-black uppercase rounded-lg border-2 transition-all duration-300
+                    text-xl sm:text-3xl font-black uppercase rounded-none border-2 transition-all duration-300
                     ${bgColor} ${textColor}
                     ${!char && !result ? 'border-dashed opacity-50' : ''}
                   `}

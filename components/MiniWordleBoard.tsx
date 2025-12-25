@@ -21,7 +21,7 @@ const MiniWordleBoard: React.FC<MiniWordleBoardProps> = ({ results, wordLength }
             else if (status === 'present') bgColor = 'bg-amber-400';
             else if (status === 'absent') bgColor = 'bg-zinc-300';
             
-            return <div key={j} className={`flex-1 rounded-[2px] ${bgColor} transition-colors duration-500`} />;
+            return <div key={j} className={`flex-1 rounded-none ${bgColor} transition-colors duration-500`} />;
           })}
         </div>
       ))}
