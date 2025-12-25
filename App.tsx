@@ -237,12 +237,28 @@ const App: React.FC = () => {
   // Global Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Allow Esc to close modals or return to hub
       if (e.key === 'Escape') {
+        // Stats/History detail open? Close it.
         if (selectedHistoryGame) { 
           setSelectedHistoryGame(null); 
           return; 
         }
+
+        // Active game view?
+        if (view.includes('-game')) {
+          // If finished, Esc goes back to hub
+          if (isWon || isLost) {
+            setView('hub');
+            setIsPaused(false);
+            setActiveGameType(null);
+            return;
+          }
+          // Otherwise toggle pause menu
+          setIsPaused(prev => !prev);
+          return;
+        }
+
+        // Game menu or secondary screen open? Go to Hub.
         if (view !== 'hub') {
           setView('hub');
           setIsPaused(false);
@@ -251,6 +267,7 @@ const App: React.FC = () => {
         }
       }
 
+      // Input field bypass
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         if (e.key === 'Enter') {
           const val = (document.activeElement as HTMLInputElement).value;
@@ -373,17 +390,34 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6 sm:gap-10"><div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2.5rem] sm:rounded-[3.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] sm:border-[8px] border-zinc-50 shadow-inner"><svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg></div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {/* Input Overlays - Improved Fixed Bottom Positioning */}
+              {/* Input Overlays */}
               {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 sm:pb-10 bg-white border-t border-zinc-100 pt-3 sm:pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
               {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 
-              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setIsPaused(false); setView('hub'); }} onRestart={() => { setIsPaused(false); resetGameState(`${activeGameType}-game` as View); if (activeGameType === 'sudoku') startSudoku(difficulty!); else if (activeGameType === 'wordle') startWordle(difficulty!); else if (activeGameType === 'colordle') startColordle(difficulty!); else startGeodle(difficulty!); }} gameType={activeGameType!} />}
+              {isPaused && (
+                <PauseMenu 
+                  onResume={() => setIsPaused(false)} 
+                  onExit={() => { 
+                    setIsPaused(false); 
+                    setView(`${activeGameType}-menu` as View); 
+                  }} 
+                  onRestart={() => { 
+                    setIsPaused(false); 
+                    resetGameState(`${activeGameType}-game` as View); 
+                    if (activeGameType === 'sudoku') startSudoku(difficulty!); 
+                    else if (activeGameType === 'wordle') startWordle(difficulty!); 
+                    else if (activeGameType === 'colordle') startColordle(difficulty!); 
+                    else startGeodle(difficulty!); 
+                  }} 
+                  gameType={activeGameType!} 
+                />
+              )}
 
               {(isWon || isLost) && (
                 <div className="fixed inset-0 z-[120] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
-                  <div className="text-center w-full max-w-sm">
+                  <div className="text-center w-full max-sm:max-w-xs">
                     <h2 className="text-6xl sm:text-7xl font-black mb-4 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
                     <div className="bg-zinc-50 rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 border border-zinc-100 mb-8 sm:mb-10">
                       <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
