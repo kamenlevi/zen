@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { CompletedGame, InProgressGame, WordleMove } from '../types.ts';
 import MiniBoard from './MiniBoard.tsx';
@@ -34,9 +33,10 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
     const isWordle = game.gameType === 'wordle';
     const isColordle = game.gameType === 'colordle';
     const moves = game.moves || [];
+    const solution = game.solution as string;
     
     // Check for "FAILED" status in Wordle
-    const isFailed = isComplete && isWordle && moves.length >= 6 && (moves[moves.length - 1] as WordleMove).word !== game.solution;
+    const isFailed = isComplete && isWordle && moves.length >= 6 && (moves[moves.length - 1] as WordleMove).word !== solution;
     
     return (
       <div 
@@ -44,18 +44,27 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         onClick={() => onOpenStats(game)}
         className="group flex flex-col p-3 bg-zinc-50 border border-zinc-100 rounded-[2rem] transition-all hover:scale-[1.03] cursor-pointer shadow-sm active:scale-95 bg-white"
       >
-        <div className="aspect-square w-full mb-3 overflow-hidden rounded-2xl shadow-sm bg-zinc-50 border border-zinc-100">
+        <div className="aspect-square w-full mb-3 overflow-hidden rounded-2xl shadow-sm bg-zinc-50 border border-zinc-100 relative">
           {isSudoku ? (
             <MiniBoard board={isComplete ? (game as CompletedGame).solution as any : (game as InProgressGame).boardState as any} />
           ) : isWordle ? (
-            <MiniWordleBoard 
-              results={moves.map(m => getWordFeedback((m as any).word, (game as any).solution as string))} 
-              wordLength={5} 
-            />
+            <>
+              <MiniWordleBoard 
+                results={moves.map(m => getWordFeedback((m as any).word, solution))} 
+                wordLength={5} 
+              />
+              {isComplete && (
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center">
+                  <span className="bg-black text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                    {solution}
+                  </span>
+                </div>
+              )}
+            </>
           ) : isColordle ? (
             <MiniColordleBoard 
               guesses={moves as any} 
-              targetColor={(game as any).solution as string} 
+              targetColor={solution} 
               hideTarget={!isComplete}
             />
           ) : (

@@ -5,7 +5,7 @@ import {
 } from './types.ts';
 import { GoogleGenAI } from "@google/genai";
 import { generateSudoku } from './services/sudokuService.ts';
-import { generateWordleWord, getWordFeedback, isValidWord } from './services/wordleService.ts';
+import { generateDynamicWord, getWordFeedback, isValidWord } from './services/wordleService.ts';
 import { getRandomNicheColor, getSemanticCloseness, getColorHint } from './services/colorService.ts';
 import { getRandomCountry, validateAndGetLocation, getGeoHint } from './services/geoService.ts';
 import { formatTime } from './utils/time.ts';
@@ -76,6 +76,7 @@ const App: React.FC = () => {
   const [wordleResults, setWordleResults] = useState<WordleStatus[][]>([]);
   const [keyStatus, setKeyStatus] = useState<Record<string, WordleStatus>>({});
   const [isWordleValidating, setIsWordleValidating] = useState(false);
+  const [isWordleLoading, setIsWordleLoading] = useState(false);
   const [wordleShakeTrigger, setWordleShakeTrigger] = useState(0);
   const [wordExplanation, setWordExplanation] = useState<string>('');
   
@@ -250,7 +251,6 @@ const App: React.FC = () => {
     setIsWordleValidating(true);
     const wordToValidate = currentGuess.toUpperCase();
     try {
-      // User requested "as slow as possible" to ensure quality validation
       const valid = await isValidWord(wordToValidate);
       if (!valid) { 
         setIsWordleValidating(false);
@@ -391,7 +391,12 @@ const App: React.FC = () => {
     setDifficulty(l); setActiveGameType('sudoku'); setInitialPuzzle(puzzle); setSolution(solution); 
     setBoardState(puzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 })))); resetGameState('sudoku-game'); 
   };
-  const startWordle = (l: Difficulty) => { setDifficulty(l); setActiveGameType('wordle'); setTargetWord(generateWordleWord(l)); resetGameState('wordle-game'); };
+  const startWordle = async (l: Difficulty) => { 
+    setDifficulty(l); setActiveGameType('wordle'); setIsWordleLoading(true);
+    const word = await generateDynamicWord(l);
+    setTargetWord(word); setIsWordleLoading(false);
+    resetGameState('wordle-game'); 
+  };
   const startColordle = (l: Difficulty) => { const c = getRandomNicheColor(l); setDifficulty(l); setActiveGameType('colordle'); setTargetColor(c.hex); setTargetColorName(c.name); resetGameState('colordle-game'); };
   const startGeodle = (l: Difficulty) => { const c = getRandomCountry(l); setDifficulty(l); setActiveGameType('geodle'); setTargetCountry(c); resetGameState('geodle-game'); };
 
@@ -461,6 +466,12 @@ const App: React.FC = () => {
               </header>
 
               <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-40 sm:pb-48 overflow-x-hidden">
+                {isWordleLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/90 backdrop-blur-sm">
+                    <div className="w-12 h-12 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-6"></div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Consulting Dictionary...</p>
+                  </div>
+                )}
                 {view === 'sudoku-game' && boardState && <Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} />}
                 {view === 'wordle-game' && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
                 {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] border-zinc-50 shadow-inner">?</div><ColordleBoard guesses={colordleGuesses} /></div>}

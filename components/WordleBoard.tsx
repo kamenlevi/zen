@@ -13,14 +13,14 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
   const rows = Array.from({ length: maxGuesses });
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-2 w-full items-center px-1 overflow-x-hidden no-scrollbar py-2">
+    <div className="flex flex-col gap-1.5 sm:gap-2 w-full items-center px-2 overflow-x-hidden no-scrollbar py-4">
       {rows.map((_, i) => {
         const guess = guesses[i] || (i === guesses.length ? currentGuess : '');
         const result = results[i];
         const isCurrent = i === guesses.length;
 
         return (
-          <div key={i} className="flex gap-1 sm:gap-2 justify-center w-full">
+          <div key={i} className="flex gap-1.5 sm:gap-2 justify-center w-full">
             {Array.from({ length: wordLength }).map((_, j) => {
               const char = guess[j] || '';
               const status = result ? result[j] : 'tbd';
@@ -38,18 +38,18 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
                 bgColor = 'bg-zinc-400 border-zinc-400';
                 textColor = 'text-white';
               } else if (isCurrent && char) {
-                bgColor = 'bg-white border-zinc-900 scale-105';
+                bgColor = 'bg-white border-zinc-900 scale-[1.05] shadow-sm';
               }
 
               return (
                 <div
                   key={j}
                   className={`
-                    w-[min(15vw,50px)] h-[min(15vw,50px)] sm:w-[68px] sm:h-[68px]
+                    w-[min(19vw,70px)] h-[min(19vw,70px)] sm:w-[75px] sm:h-[75px]
                     flex-shrink flex items-center justify-center 
-                    text-base sm:text-3xl font-black uppercase rounded-none border-2 transition-all duration-300
+                    text-2xl sm:text-3xl font-black uppercase rounded-none border-2 transition-all duration-300
                     ${bgColor} ${textColor}
-                    ${!char && !result ? 'opacity-40' : ''}
+                    ${!char && !result ? 'opacity-30' : ''}
                   `}
                 >
                   {char}

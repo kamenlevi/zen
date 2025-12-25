@@ -1,79 +1,73 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Difficulty, WordleStatus } from '../types.ts';
 
-const COMMON_WORDS = new Set([
-  'APPLE', 'BEACH', 'BRAIN', 'BREAD', 'BRUSH', 'CHAIR', 'CHEST', 'CHORD', 'CLICK', 'CLOCK',
-  'CLOUD', 'DANCE', 'DIARY', 'DRINK', 'EARTH', 'FEAST', 'FIELD', 'FRUIT', 'GLASS', 'GRAPE',
-  'GREEN', 'HEART', 'HOUSE', 'JUICE', 'LIGHT', 'LEMON', 'LUCKY', 'MONEY', 'MUSIC', 'NIGHT',
-  'OCEAN', 'PARTY', 'PIANO', 'PILOT', 'PLANE', 'PHONE', 'PIZZA', 'PLANT', 'RADIO', 'RIVER',
-  'ROBOT', 'SHIRT', 'SHOES', 'SMILE', 'SNAKE', 'SOUND', 'SPACE', 'SPOON', 'STORM', 'TABLE',
-  'TIGER', 'TOAST', 'TOUCH', 'TRAIN', 'TRUCK', 'VOICE', 'WATER', 'WATCH', 'WHALE', 'WORLD',
-  'WRITE', 'YOUTH', 'ZEBRA', 'STORE', 'PLATE', 'SHINE', 'GREAT', 'LARGE', 'SMALL', 'SWIFT',
-  'CRANE', 'AUDIO', 'ADIEU', 'STEAM', 'STARE', 'CLONE', 'DREAM', 'FLAME', 'GLARE'
-]);
-
 const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
-  [Difficulty.Easy]: ['HEART', 'MUSIC', 'WATER', 'PEACE', 'LIGHT', 'WORLD', 'BREAD', 'HOUSE', 'NIGHT', 'WHITE', 'GREEN', 'APPLE', 'GRAPE', 'POWER', 'CLOCK', 'SMILE', 'VOICE', 'SOUND', 'PLACE', 'TABLE', 'SHINE', 'STORY', 'PHONE', 'TRAIN', 'CLEAN', 'DANCE', 'SHORE', 'PIANO'],
-  [Difficulty.Medium]: ['BRAVE', 'STORM', 'CRANE', 'GLOVE', 'BRICK', 'FLAME', 'GHOST', 'SHARK', 'PLANT', 'OCEAN', 'SWIFT', 'FRONT', 'BLOOM', 'QUIET', 'FOCUS', 'CLEAR', 'GREAT', 'LARGE', 'WATCH', 'FLUFF', 'SPICE', 'CLIMB', 'BRISK', 'GLIDE', 'SNOWY', 'VIVID', 'PEARL', 'MIGHT'],
-  [Difficulty.Hard]: ['FJORD', 'PHLOX', 'ABYSS', 'QUERY', 'WASTE', 'YACHT', 'KNAVE', 'QUIRK', 'SNOUT', 'ZESTY', 'VIGOR', 'AXIOM', 'VAGUE', 'WRIST', 'JOKER', 'HYENA', 'GECKO', 'PIQUE', 'OZONE', 'EPOXY', 'GAUZE', 'PROXY', 'QUART', 'SPELT', 'AWFUL', 'CLERK', 'DWARF'],
-  [Difficulty.Expert]: ['SYLPH', 'GNASH', 'UNMET', 'SNORE', 'AMUSE', 'ADAPT', 'SPAWN', 'JUDGE', 'BLUFF', 'CRAWL', 'PRISM', 'WHARF', 'CHASM', 'BEGET', 'COVET', 'EVOKE', 'QUALM', 'UNZIP', 'FRITZ', 'LYNCH', 'MYTHS', 'QUOTH', 'SWIRL', 'TOPAZ', 'UNTIE', 'VORTX'],
-  [Difficulty.Master]: ['FIFIS', 'XYLEM', 'CRWTH', 'AIOLI', 'SYBAR', 'OORIE', 'ZOWIE', 'SABRA', 'REIFY', 'SQUAB', 'ZARFS', 'YAMEN', 'XEBEC', 'WREAK', 'VOLTE', 'ULNAE', 'TYPIC', 'SWALE', 'RUCHE', 'QUATE', 'QOPHS', 'MYLAR', 'KAIAK', 'IDYLL', 'ETUDE', 'DERTH']
+  [Difficulty.Easy]: ['HEART', 'MUSIC', 'WATER', 'PEACE', 'LIGHT', 'WORLD', 'BREAD', 'HOUSE', 'NIGHT', 'WHITE'],
+  [Difficulty.Medium]: ['BRAVE', 'STORM', 'CRANE', 'GLOVE', 'BRICK', 'FLAME', 'GHOST', 'SHARK', 'PLANT', 'OCEAN'],
+  [Difficulty.Hard]: ['FJORD', 'PHLOX', 'ABYSS', 'QUERY', 'WASTE', 'YACHT', 'KNAVE', 'QUIRK', 'SNOUT', 'ZESTY'],
+  [Difficulty.Expert]: ['SYLPH', 'GNASH', 'UNMET', 'SNORE', 'AMUSE', 'ADAPT', 'SPAWN', 'JUDGE', 'BLUFF', 'CRAWL'],
+  [Difficulty.Master]: ['FIFIS', 'XYLEM', 'CRWTH', 'AIOLI', 'SYBAR', 'OORIE', 'ZOWIE', 'SABRA', 'REIFY', 'SQUAB']
 };
 
-function isLinguisticJunk(word: string): boolean {
-  const w = word.trim().toUpperCase();
-  if (w.length !== 5) return true;
-  const chars = w.split('');
-  const unique = new Set(chars);
-  if (unique.size <= 1) return true;
-  const keyboardMash = ['QWERT', 'ASDFG', 'ZXCVB', 'YUIOP', 'HJKLM', 'QAZXS', 'WEDCV'];
-  if (keyboardMash.some(p => w.includes(p) || p.split('').reverse().join('').includes(w))) return true;
-  if (!/[AEIOUY]/.test(w)) return true;
-  return false;
-}
-
-export function generateWordleWord(difficulty: Difficulty): string {
-  const words = WORDS_BY_DIFFICULTY[difficulty] || WORDS_BY_DIFFICULTY[Difficulty.Medium];
-  return words[Math.floor(Math.random() * words.length)].toUpperCase();
-}
-
-export async function isValidWord(word: string): Promise<boolean> {
-  const w = word.trim().toUpperCase();
-  if (w.length !== 5) return false;
-  if (isLinguisticJunk(w)) return false;
-  if (COMMON_WORDS.has(w)) return true;
-  
+/**
+ * Generates a unique 5-letter word using Gemini API based on difficulty.
+ */
+export async function generateDynamicWord(difficulty: Difficulty): Promise<string> {
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === 'undefined') {
-    return !isLinguisticJunk(w);
+    const list = WORDS_BY_DIFFICULTY[difficulty];
+    return list[Math.floor(Math.random() * list.length)].toUpperCase();
   }
 
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Generate one single 5-letter English word for a Wordle game.
+      Difficulty Level: ${difficulty} 
+      (Easy = extremely common, Master = extremely obscure/rare).
+      Respond with ONLY the word in uppercase.`,
+    });
+    const word = response.text?.trim().toUpperCase();
+    if (word && word.length === 5 && /^[A-Z]+$/.test(word)) {
+      return word;
+    }
+  } catch (e) {
+    console.error("AI Word Generation failed, falling back", e);
+  }
+  const list = WORDS_BY_DIFFICULTY[difficulty];
+  return list[Math.floor(Math.random() * list.length)].toUpperCase();
+}
+
+/**
+ * Validates a word using the Gemini API for strict dictionary checking.
+ */
+export async function isValidWord(word: string): Promise<boolean> {
+  const w = word.trim().toUpperCase();
+  if (w.length !== 5) return false;
+
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey === 'undefined') return true;
+
+  const ai = new GoogleGenAI({ apiKey });
+  try {
+    const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
-      contents: `You are a strict dictionary expert for a Wordle-style game.
-      Is the 5-letter string "${w}" a valid, real English word found in standard dictionaries (Oxford, Merriam-Webster)? 
-
-      CRITICAL RULES:
-      1. Reject common typos. Example: 'babie' is a typo of 'baby', so 'babie' is INVALID.
-      2. Reject abbreviations or acronyms.
-      3. Reject keyboard mashes like 'fmodj'.
-      4. If it is NOT in a standard English dictionary, it is INVALID.
-
+      contents: `Is the 5-letter string "${w}" a valid, correctly spelled real English word found in standard dictionaries? 
+      Strict rules:
+      - Reject common typos (e.g., 'babie' is a typo of 'baby' and is INVALID).
+      - Reject keyboard mashes.
       Respond ONLY with "VALID" or "INVALID".`,
       config: { 
-        thinkingConfig: { thinkingBudget: 4096 },
+        thinkingConfig: { thinkingBudget: 2048 },
         temperature: 0 
       }
     });
 
-    const result = response.text?.trim().toUpperCase();
-    return result === 'VALID';
+    return response.text?.trim().toUpperCase() === 'VALID';
   } catch (e) {
-    console.error("Word validation error:", e);
-    return !isLinguisticJunk(w);
+    console.error("Validation API error:", e);
+    return true; 
   }
 }
 
