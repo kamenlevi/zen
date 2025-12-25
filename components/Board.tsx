@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BoardState } from '../types.ts';
 
@@ -44,7 +43,7 @@ const Board: React.FC<BoardProps> = ({ boardState, selectedCell, onCellSelect, h
                 `}
               >
                 <span className={`
-                  text-lg sm:text-2xl font-black tabular-nums
+                  text-base sm:text-2xl font-black tabular-nums
                   ${isSelected ? 'text-white' : cell.isError ? 'text-red-500 animate-shake' : cell.readonly ? 'text-zinc-900' : 'text-blue-600 font-bold'}
                 `}>
                   {cell.value !== 0 ? cell.value : ''}

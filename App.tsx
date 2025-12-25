@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Difficulty, BoardState, Grid, Move, CompletedGame, InProgressGame, WordleStatus,
@@ -121,7 +120,7 @@ const App: React.FC = () => {
     localStorage.setItem('zen_settings', JSON.stringify(updated));
   };
 
-  // Persistence: Save Progress in Real-time
+  // Persistence: Save Progress in Real-time (including when paused)
   useEffect(() => {
     if (view.includes('-game') && activeGameType && !isWon && !isLost) {
       const progress: InProgressGame = {
@@ -135,10 +134,9 @@ const App: React.FC = () => {
         elapsedTime,
         moves: moveHistory
       };
-      // Keep only one progress item per type for simplicity
       localStorage.setItem(`zen_${activeGameType}_progress`, JSON.stringify([progress]));
     }
-  }, [view, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory, isWon, isLost, targetWord, targetColor, targetCountry]);
+  }, [view, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory, isWon, isLost, targetWord, targetColor, targetCountry, isPaused]);
 
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     if (explanation) setWordExplanation(explanation);
@@ -171,7 +169,7 @@ const App: React.FC = () => {
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Simple definition for "${word}". One short sentence.`,
+        contents: `Provide a short, 1-sentence definition for the word "${word}". No intro or outro.`,
       });
       return response.text?.trim() || "";
     } catch (e) { return ""; }
@@ -225,6 +223,7 @@ const App: React.FC = () => {
     setRedoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setUndoStack(prev => prev.slice(0, -1));
     setBoardState(lastState);
+    setHighlightedValue(null);
   }, [undoStack, boardState]);
 
   const handleRedo = useCallback(() => {
@@ -233,6 +232,7 @@ const App: React.FC = () => {
     setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack(prev => prev.slice(0, -1));
     setBoardState(nextState);
+    setHighlightedValue(null);
   }, [redoStack, boardState]);
 
   const handleReset = useCallback(() => {
@@ -250,6 +250,7 @@ const App: React.FC = () => {
     setIsWordleValidating(true);
     const wordToValidate = currentGuess.toUpperCase();
     try {
+      // User requested "as slow as possible" to ensure quality validation
       const valid = await isValidWord(wordToValidate);
       if (!valid) { 
         setIsWordleValidating(false);
