@@ -1,6 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import { Difficulty, WordleStatus } from '../types.ts';
 
+const COMMON_VALID_WORDS = new Set([
+  'APPLE', 'BEACH', 'BRAIN', 'BREAD', 'BRUSH', 'CHAIR', 'CHEST', 'CHORD', 'CLICK', 'CLOCK',
+  'CLOUD', 'DANCE', 'DIARY', 'DRINK', 'EARTH', 'FEAST', 'FIELD', 'FRUIT', 'GLASS', 'GRAPE',
+  'GREEN', 'HEART', 'HOUSE', 'JUICE', 'LIGHT', 'LEMON', 'LUCKY', 'MONEY', 'MUSIC', 'NIGHT',
+  'OCEAN', 'PARTY', 'PIANO', 'PILOT', 'PLANE', 'PHONE', 'PIZZA', 'PLANT', 'RADIO', 'RIVER',
+  'ROBOT', 'SHIRT', 'SHOES', 'SMILE', 'SNAKE', 'SOUND', 'SPACE', 'SPOON', 'STORM', 'TABLE',
+  'TIGER', 'TOAST', 'TOUCH', 'TRAIN', 'TRUCK', 'VOICE', 'WATER', 'WATCH', 'WHALE', 'WORLD',
+  'WRITE', 'YOUTH', 'ZEBRA', 'STORE', 'PLATE', 'SHINE', 'GREAT', 'LARGE', 'SMALL', 'SWIFT'
+]);
+
 const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
   [Difficulty.Easy]: ['HEART', 'MUSIC', 'WATER', 'PEACE', 'LIGHT', 'WORLD', 'BREAD', 'HOUSE', 'NIGHT', 'WHITE'],
   [Difficulty.Medium]: ['BRAVE', 'STORM', 'CRANE', 'GLOVE', 'BRICK', 'FLAME', 'GHOST', 'SHARK', 'PLANT', 'OCEAN'],
@@ -9,9 +19,6 @@ const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
   [Difficulty.Master]: ['FIFIS', 'XYLEM', 'CRWTH', 'AIOLI', 'SYBAR', 'OORIE', 'ZOWIE', 'SABRA', 'REIFY', 'SQUAB']
 };
 
-/**
- * Generates a unique 5-letter word using Gemini API based on difficulty.
- */
 export async function generateDynamicWord(difficulty: Difficulty): Promise<string> {
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === 'undefined') {
@@ -25,7 +32,7 @@ export async function generateDynamicWord(difficulty: Difficulty): Promise<strin
       model: 'gemini-3-flash-preview',
       contents: `Generate one single, valid, real 5-letter English word for a Wordle game.
       Difficulty: ${difficulty}. 
-      Easy = very common. Master = very rare/advanced but still in a real dictionary.
+      Easy = very common. Master = very rare but real.
       Respond with ONLY the word in uppercase.`,
     });
     const word = response.text?.trim().toUpperCase();
@@ -39,12 +46,12 @@ export async function generateDynamicWord(difficulty: Difficulty): Promise<strin
   return list[Math.floor(Math.random() * list.length)].toUpperCase();
 }
 
-/**
- * Validates a word with strict dictionary enforcement using Gemini.
- */
 export async function isValidWord(word: string): Promise<boolean> {
   const w = word.trim().toUpperCase();
   if (w.length !== 5) return false;
+
+  // Fast-pass for common words
+  if (COMMON_VALID_WORDS.has(w)) return true;
 
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === 'undefined') return true;
@@ -53,17 +60,10 @@ export async function isValidWord(word: string): Promise<boolean> {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Linguistic Audit: Is the 5-letter string "${w}" a real, correctly spelled English word?
-      
-      STRICT REJECTION RULES:
-      - Reject TYPOS (e.g., 'babie' is a typo of 'baby' and is INVALID).
-      - Reject keyboard mashes (e.g., 'asdfg').
-      - Reject fake words that just sound real.
-      - Reject slang not found in standard dictionaries.
-
-      Respond ONLY with "VALID" or "INVALID".`,
+      contents: `Is the 5-letter string "${w}" a real English word found in a standard dictionary? Respond ONLY with "VALID" or "INVALID".`,
       config: { 
-        temperature: 0 
+        temperature: 0,
+        maxOutputTokens: 10
       }
     });
 
@@ -71,9 +71,9 @@ export async function isValidWord(word: string): Promise<boolean> {
     return result === 'VALID';
   } catch (e) {
     console.error("Validation API error:", e);
-    // On error, default to false to prevent non-words from slipping through.
-    // We only allow if it's in our tiny internal difficulty list as a fallback.
-    return Object.values(WORDS_BY_DIFFICULTY).some(list => list.includes(w));
+    // Fallback: If it has a vowel and isn't nonsense, let it pass rather than blocking the game
+    const hasVowel = /[AEIOUY]/.test(w);
+    return hasVowel;
   }
 }
 

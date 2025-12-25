@@ -344,16 +344,58 @@ const App: React.FC = () => {
     }
   }, [isPaused, isWon, isLost, isGeoLoading, targetCountry, geodleGuesses, moveHistory, handleGameOver]);
 
+  const handleContinueGame = (game: InProgressGame) => {
+    resetGameState(`${game.gameType}-game` as View);
+    setActiveGameType(game.gameType);
+    setDifficulty(game.difficulty);
+    setStartTime(game.startTime);
+    setElapsedTime(game.elapsedTime);
+    setMoveHistory(game.moves);
+    
+    if (game.gameType === 'sudoku') {
+      setInitialPuzzle(game.puzzle as Grid);
+      // Re-solve or get solution from moves? Usually we should save solution too
+      // For this simple app, we'll re-generate/re-solve to get the solution based on initial puzzle
+      // Actually we save solution in InProgressGame
+      setSolution(game.solution as Grid);
+      setBoardState(game.boardState as BoardState);
+    } else if (game.gameType === 'wordle') {
+      setTargetWord(game.solution as string);
+      const previousGuesses = game.boardState as string[];
+      setGuesses(previousGuesses);
+      const results = previousGuesses.map(g => getWordFeedback(g, game.solution as string));
+      setWordleResults(results);
+      
+      const newKeys: Record<string, WordleStatus> = {};
+      results.forEach((feedback, fIdx) => {
+        feedback.forEach((s, sIdx) => {
+          const char = previousGuesses[fIdx][sIdx];
+          if (s === 'correct' || (s === 'present' && newKeys[char] !== 'correct')) newKeys[char] = s;
+          else if (!newKeys[char]) newKeys[char] = s;
+        });
+      });
+      setKeyStatus(newKeys);
+    } else if (game.gameType === 'colordle') {
+      setTargetColor(game.solution as string);
+      // We don't save name explicitly in progress yet, but we should. For now assume it's recoverable or re-fetched if needed.
+      // Better: we just use the hex.
+      setColordleGuesses(game.boardState as ColordleMove[]);
+    } else if (game.gameType === 'geodle') {
+      setTargetCountry(game.solution as string);
+      setGeodleGuesses(game.boardState as GeodleMove[]);
+    }
+    
+    setView(`${game.gameType}-game` as View);
+  };
+
   // Global Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // If we are in an input, don't trigger game shortcuts
       const activeEl = document.activeElement;
       if (activeEl?.tagName === 'INPUT' || activeEl?.tagName === 'TEXTAREA') {
         if (e.key === 'Escape') {
           (activeEl as HTMLElement).blur();
         }
-        // Important: Stop propagation for game-related keys to prevent cross-view glitching
         if (e.key >= '0' && e.key <= '9') {
           return;
         }
@@ -418,7 +460,6 @@ const App: React.FC = () => {
   };
   
   const startWordle = async (l: Difficulty) => { 
-    // Optimization: Show view immediately so user doesn't wait on menu
     setDifficulty(l); 
     setActiveGameType('wordle'); 
     resetGameState('wordle-game'); 
@@ -478,6 +519,7 @@ const App: React.FC = () => {
               setCategory={(c) => setActiveGameType(c)} 
               onBack={() => setView('hub')} 
               onOpenStats={(g) => setSelectedHistoryGame(g)}
+              onContinueGame={handleContinueGame}
             />
           )}
 
