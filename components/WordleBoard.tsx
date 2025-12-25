@@ -50,7 +50,7 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
                     flex items-center justify-center 
                     text-xl sm:text-3xl font-black uppercase rounded-none border-2 transition-all duration-300
                     ${bgColor} ${textColor}
-                    ${!char && !result ? 'border-dashed opacity-50' : ''}
+                    ${!char && !result ? 'opacity-40' : ''}
                   `}
                 >
                   {char}
