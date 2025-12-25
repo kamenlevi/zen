@@ -249,6 +249,7 @@ const App: React.FC = () => {
             setActiveGameType(null);
             return;
           }
+          // Correct toggle behavior for Escape key
           setIsPaused(prev => !prev);
           return;
         }
