@@ -91,22 +91,28 @@ export interface GameSettings {
   sudoku: {
     highlightRelated: boolean;
     highlightSameValue: boolean;
-    errorFeedback: 'immediate' | 'manual';
+    highlightMistakes: boolean;
+    showHints: boolean;
+    timerVisible: boolean;
   };
   wordle: {
     hardMode: boolean;
     highContrast: boolean;
+    showKeyboardFeedback: boolean;
   };
   colordle: {
     allowHints: boolean;
     vibrationFeedback: boolean;
+    showHexCodes: boolean;
   };
   geodle: {
     metricUnits: boolean;
     showCoordinates: boolean;
+    autoRotateGlobe: boolean;
   };
   global: {
     animations: boolean;
     sounds: boolean;
+    haptics: boolean;
   };
 }

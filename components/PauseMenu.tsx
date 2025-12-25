@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PlayIcon, ResetIcon, XIcon } from './icons.tsx';
+import { PlayIcon, ResetIcon, XIcon, ChevronLeftIcon } from './icons.tsx';
 
 interface PauseMenuProps {
   onResume: () => void;
@@ -20,6 +20,12 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
       
       {/* Menu Card */}
       <div className="relative bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-[0_32px_80px_rgba(0,0,0,0.15)] border border-zinc-200 animate-pop-in">
+        <div className="absolute top-8 left-8">
+           <button onClick={onResume} className="p-2 bg-zinc-50 rounded-full active:scale-90 transition-transform">
+              <ChevronLeftIcon className="w-5 h-5 text-black" />
+           </button>
+        </div>
+
         <h2 className="text-4xl font-black tracking-tighter text-black mb-2 uppercase text-center">Paused</h2>
         <p className="text-[10px] font-black text-zinc-400 tracking-[0.4em] uppercase text-center mb-12">
           {gameType}
