@@ -12,8 +12,8 @@ interface WordleKeyboardProps {
 }
 
 const ROW_1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
-const ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
-const ROW_3 = ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DELETE'];
+const ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'DELETE'];
+const ROW_3 = [ 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER'];
 
 const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelete, keyStatus, validating }) => {
   const renderKey = (key: string) => {
