@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { WordleStatus } from '../types.ts';
+import { BackspaceIcon } from './icons.tsx';
 
 interface WordleKeyboardProps {
   onKey: (key: string) => void;
@@ -33,24 +35,25 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
       else onKey(key);
     };
 
+    const isDelete = key === 'DELETE';
+    const isEnter = key === 'ENTER';
+
     return (
       <button
         key={key}
-        disabled={validating && key === 'ENTER'}
+        disabled={validating && isEnter}
         onClick={handleClick}
         className={`
-          flex-grow h-[60px] sm:h-14 flex items-center justify-center rounded-lg font-black transition-all active:scale-95 border
-          ${key === 'DELETE' || key === 'ENTER' ? 'px-3 min-w-[64px] sm:min-w-[80px]' : 'min-w-[32px] sm:min-w-[42px] text-sm sm:text-base'}
-          ${key === 'ENTER' ? 'text-[9px] tracking-widest' : ''}
+          flex-grow h-[48px] sm:h-14 flex items-center justify-center rounded-lg font-black transition-all active:scale-95 border
+          ${isDelete || isEnter ? 'px-1 min-w-[42px] sm:min-w-[80px]' : 'min-w-[24px] sm:min-w-[42px] text-[11px] sm:text-base'}
+          ${isEnter ? 'text-[8px] sm:text-[10px] tracking-widest' : ''}
           ${colorClasses}
-          ${validating && key === 'ENTER' ? 'opacity-50' : ''}
+          ${validating && isEnter ? 'opacity-50' : ''}
         `}
       >
-        {key === 'DELETE' ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : key === 'ENTER' ? (
+        {isDelete ? (
+          <BackspaceIcon className="w-5 h-5" />
+        ) : isEnter ? (
           validating ? (
             <div className="w-4 h-4 border-2 border-zinc-400 border-t-zinc-900 rounded-full animate-spin"></div>
           ) : (
@@ -62,14 +65,14 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full max-w-lg mx-auto px-0.5 select-none pb-safe">
+    <div className="flex flex-col gap-1 w-full max-w-lg mx-auto px-0.5 select-none pb-safe">
       <div className="flex gap-1 justify-center w-full">
         {ROW_1.map(k => renderKey(k))}
       </div>
-      <div className="flex gap-1 justify-center w-full pl-1">
+      <div className="flex gap-1 justify-center w-full">
         {ROW_2.map(k => renderKey(k, k === 'DELETE'))}
       </div>
-      <div className="flex gap-1 justify-center w-full pr-1">
+      <div className="flex gap-1 justify-center w-full">
         {ROW_3.map(k => renderKey(k, k === 'ENTER'))}
       </div>
     </div>

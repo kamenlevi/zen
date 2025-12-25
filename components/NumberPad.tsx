@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { EraseIcon } from './icons.tsx';
+// Fix: BackspaceIcon is used instead of non-existent EraseIcon from icons.tsx
+import { BackspaceIcon } from './icons.tsx';
 
 interface NumberPadProps {
   isOpen: boolean;
@@ -47,7 +48,8 @@ const NumberPad: React.FC<NumberPadProps> = ({ isOpen, onNumberSelect, onErase, 
               onClick={onErase}
               className="h-14 col-span-3 flex items-center justify-center gap-2 text-xl text-black bg-white rounded-lg shadow active:bg-gray-200 transition-colors duration-150"
             >
-              <EraseIcon />
+              {/* Fix: Using BackspaceIcon which is exported from icons.tsx */}
+              <BackspaceIcon />
             </button>
           </div>
         </div>

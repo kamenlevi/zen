@@ -46,9 +46,9 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <button 
         key={game.id} 
         onClick={() => isComplete ? onOpenStats(game) : onContinueGame(game as InProgressGame)}
-        className={`group w-full flex flex-col p-8 bg-white border border-zinc-100 rounded-[3.5rem] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-xl text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
+        className={`group w-full flex flex-col p-6 sm:p-8 bg-white border border-zinc-100 rounded-[2.5rem] sm:rounded-[3.5rem] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-xl text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
       >
-        <div className="aspect-square w-full mb-8 overflow-hidden rounded-[2.8rem] shadow-inner bg-white border border-zinc-100 relative pointer-events-none">
+        <div className="aspect-square w-full mb-6 sm:mb-8 overflow-hidden rounded-[2rem] sm:rounded-[2.8rem] shadow-inner bg-white border border-zinc-100 relative pointer-events-none">
           {isSudoku ? (
             <MiniBoard board={isComplete ? (game as CompletedGame).solution as any : (game as InProgressGame).boardState as any} />
           ) : isWordle ? (
@@ -63,20 +63,20 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
           )}
         </div>
         
-        <div className="px-1 w-full flex flex-col gap-3 pointer-events-none">
+        <div className="px-1 w-full flex flex-col gap-2 sm:gap-3 pointer-events-none">
           <div className="flex justify-between items-center">
-            <h4 className="text-[17px] font-black uppercase text-zinc-900 leading-none truncate flex-grow mr-4">
+            <h4 className="text-[15px] sm:text-[17px] font-black uppercase text-zinc-900 leading-none truncate flex-grow mr-2">
                {mainLabel}
             </h4>
-            {!isComplete && <div className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>}
+            {!isComplete && <div className="w-3 h-3 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>}
           </div>
           
           <div className="flex justify-between items-center opacity-70">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">
+            <p className="text-[9px] sm:text-[11px] font-bold text-zinc-500 uppercase tracking-tighter">
                {isComplete ? game.difficulty : 'ACTIVE JOURNEY'}
             </p>
-            <span className="text-[11px] font-black uppercase tracking-widest text-zinc-900">
-              {isComplete ? 'View Summary' : 'Resume Play'}
+            <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-zinc-900">
+              {isComplete ? 'View' : 'Resume'}
             </span>
           </div>
         </div>
@@ -85,15 +85,15 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col p-10 font-sans max-w-xl mx-auto bg-white">
-      <header className="py-8 flex-shrink-0 border-b border-zinc-50 mb-12">
-        <h1 className="text-6xl font-black tracking-tighter text-zinc-900 leading-none uppercase">History</h1>
+    <div className="h-full flex flex-col p-6 sm:p-10 font-sans max-w-xl mx-auto bg-white">
+      <header className="py-4 sm:py-8 flex-shrink-0 border-b border-zinc-50 mb-8 sm:mb-12">
+        <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-zinc-900 leading-none uppercase">History</h1>
         
-        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-2 rounded-3xl mt-12 w-full shadow-inner gap-4">
+        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl mt-6 sm:mt-12 w-full shadow-inner gap-2 sm:gap-4">
           {(['sudoku', 'wordle', 'colordle', 'geodle'] as const).map(t => (
             <button 
               key={t} onClick={() => setCategory(t)}
-              className={`py-6 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all ${category === t ? 'bg-zinc-900 text-white shadow-xl scale-[1.05]' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`py-4 sm:py-6 text-[8px] sm:text-[10px] font-black uppercase tracking-widest rounded-xl sm:rounded-2xl transition-all ${category === t ? 'bg-zinc-900 text-white shadow-xl scale-[1.05]' : 'text-zinc-400 hover:text-zinc-600'}`}
             >
               {t}
             </button>
@@ -101,17 +101,17 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto no-scrollbar space-y-32 pb-64">
+      <main className="flex-grow overflow-y-auto no-scrollbar space-y-20 sm:space-y-32 pb-64">
         {inProgress.length > 0 && (
           <div>
-            <h3 className="text-[12px] font-black text-zinc-300 uppercase tracking-[0.5em] mb-16 px-4">Active Sprints</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-24">{inProgress.map(g => renderCard(g, false))}</div>
+            <h3 className="text-[10px] sm:text-[12px] font-black text-zinc-300 uppercase tracking-[0.5em] mb-12 sm:mb-16 px-4">Active Sprints</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 sm:gap-24">{inProgress.map(g => renderCard(g, false))}</div>
           </div>
         )}
         {sortedCompleted.length > 0 && (
           <div>
-            <h3 className="text-[12px] font-black text-zinc-300 uppercase tracking-[0.5em] mb-16 px-4">Mastered Games</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-24">{sortedCompleted.map(g => renderCard(g, true))}</div>
+            <h3 className="text-[10px] sm:text-[12px] font-black text-zinc-300 uppercase tracking-[0.5em] mb-12 sm:mb-16 px-4">Mastered Games</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 sm:gap-24">{sortedCompleted.map(g => renderCard(g, true))}</div>
           </div>
         )}
         {inProgress.length === 0 && sortedCompleted.length === 0 && (
@@ -121,8 +121,8 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-white via-white/95 to-transparent pt-24 pointer-events-none">
-        <button onClick={onBack} className="pointer-events-auto w-full max-w-xs mx-auto block bg-black text-white font-black py-8 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[12px] active:scale-95 transition-all">Home Page</button>
+      <footer className="fixed bottom-0 left-0 right-0 p-8 sm:p-12 bg-gradient-to-t from-white via-white/95 to-transparent pt-24 pointer-events-none">
+        <button onClick={onBack} className="pointer-events-auto w-full max-w-xs mx-auto block bg-black text-white font-black py-6 sm:py-8 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[10px] sm:text-[12px] active:scale-95 transition-all">Home Page</button>
       </footer>
     </div>
   );

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { EraseIcon, UndoIcon, RedoIcon, ResetIcon } from './icons.tsx';
+import { BackspaceIcon, UndoIcon, RedoIcon, ResetIcon } from './icons.tsx';
 
 interface StaticNumberPadProps {
   onNumberSelect: (num: number) => void;
@@ -43,7 +43,7 @@ const StaticNumberPad: React.FC<StaticNumberPadProps> = ({
             className="flex-1 h-14 min-w-[44px] flex items-center justify-center text-red-400 bg-red-50/50 rounded-xl border border-red-100 shadow-sm active:bg-red-500 active:text-white transition-all active:scale-[0.88]"
             aria-label="Erase"
           >
-            <EraseIcon className="w-5 h-5" />
+            <BackspaceIcon className="w-5 h-5" />
           </button>
         </div>
         
