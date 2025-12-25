@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Difficulty, BoardState, Grid, Move, CompletedGame, InProgressGame, WordleStatus,
   ColordleMove, WordleMove, GeodleMove, GameSettings
@@ -59,15 +59,17 @@ const App: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   
+  // History and Progress
+  const [undoStack, setUndoStack] = useState<BoardState[]>([]);
+  const [redoStack, setRedoStack] = useState<BoardState[]>([]);
+
   // Load settings on mount
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
     if (saved) {
       try {
         setSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to load settings", e);
-      }
+      } catch (e) { console.error("Failed to load settings", e); }
     }
   }, []);
 
@@ -119,6 +121,24 @@ const App: React.FC = () => {
   
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<CompletedGame | InProgressGame | null>(null);
 
+  // Persistence: Save Progress
+  useEffect(() => {
+    if (view.includes('-game') && activeGameType && !isWon && !isLost && !isPaused) {
+      const progress: InProgressGame = {
+        id: `${activeGameType}-${difficulty}-${startTime}`,
+        gameType: activeGameType,
+        difficulty: difficulty!,
+        startTime: startTime!,
+        puzzle: activeGameType === 'sudoku' ? initialPuzzle! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColor : targetCountry)),
+        solution: activeGameType === 'sudoku' ? solution! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColor : targetCountry)),
+        boardState: activeGameType === 'sudoku' ? boardState! : (activeGameType === 'wordle' ? guesses : (activeGameType === 'colordle' ? colordleGuesses : geodleGuesses)),
+        elapsedTime,
+        moves: moveHistory
+      };
+      localStorage.setItem(`zen_${activeGameType}_progress`, JSON.stringify([progress])); // Store as singleton for now or multi if needed
+    }
+  }, [view, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory, isWon, isLost, isPaused, targetWord, targetColor, targetCountry]);
+
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     if (explanation) setWordExplanation(explanation);
     setIsWon(won);
@@ -139,6 +159,7 @@ const App: React.FC = () => {
     try {
       const hist = JSON.parse(localStorage.getItem(`zen_${activeGameType}_history`) || '[]');
       localStorage.setItem(`zen_${activeGameType}_history`, JSON.stringify([...hist, finished]));
+      localStorage.removeItem(`zen_${activeGameType}_progress`);
     } catch (e) {}
   }, [activeGameType, difficulty, startTime, initialPuzzle, targetWord, targetColor, targetCountry, solution]);
 
@@ -160,9 +181,13 @@ const App: React.FC = () => {
     if (!selectedCell || !boardState || !solution || isPaused || isWon || isLost) return;
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
+    
+    // Undo support
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({ ...c })))]);
+    setRedoStack([]);
+
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
     newBoard[row][col].value = num;
-    // Apply settings for error feedback
     if (settings.sudoku.errorFeedback === 'immediate') {
       newBoard[row][col].isError = solution[row][col] !== num;
     } else {
@@ -182,12 +207,41 @@ const App: React.FC = () => {
     if (!selectedCell || !boardState || isPaused || isWon || isLost) return;
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
+    
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({ ...c })))]);
+    setRedoStack([]);
+
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
     newBoard[row][col].value = 0;
     newBoard[row][col].isError = false;
     setBoardState(newBoard);
     setMoveHistory(prev => [...prev, { type: 'cell', row, col, value: 0, timestamp: Date.now() }]);
   }, [selectedCell, boardState, isPaused, isWon, isLost]);
+
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    const last = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    setUndoStack(prev => prev.slice(0, -1));
+    setBoardState(last);
+  }, [undoStack, boardState]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    setRedoStack(prev => prev.slice(0, -1));
+    setBoardState(next);
+  }, [redoStack, boardState]);
+
+  const handleReset = useCallback(() => {
+    if (!initialPuzzle) return;
+    setUndoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    setRedoStack([]);
+    setBoardState(initialPuzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 }))));
+    setSelectedCell(null);
+    setHighlightedValue(null);
+  }, [initialPuzzle, boardState]);
 
   // --- WORDLE ---
   const handleWordleSubmit = useCallback(async () => {
@@ -229,40 +283,50 @@ const App: React.FC = () => {
   }, [currentGuess, targetWord, guesses, isPaused, isWon, isLost, keyStatus, moveHistory, handleGameOver, isWordleValidating]);
 
   // --- COLORDLE ---
-  const handleColordleSubmit = useCallback(async (guess: string) => {
+  // Fix: Implemented handleColordleSubmit to handle color guessing logic.
+  const handleColordleSubmit = useCallback(async (guessName: string) => {
     if (isPaused || isWon || isLost || isColorLoading) return;
     setIsColorLoading(true);
     try {
-      const result = await getSemanticCloseness(guess, targetColorName);
+      const result = await getSemanticCloseness(guessName, targetColorName);
+      if (!result.isValid) {
+        setIsColorLoading(false);
+        return;
+      }
       const newMove: ColordleMove = {
         type: 'color-guess',
-        guessName: guess,
+        guessName: guessName.toUpperCase(),
         guessHex: result.hex,
         percentage: result.percentage,
         timestamp: Date.now()
       };
-      const nextGuesses = [...colordleGuesses, newMove];
-      setColordleGuesses(nextGuesses);
+      const newGuesses = [...colordleGuesses, newMove];
+      setColordleGuesses(newGuesses);
       const nextHistory = [...moveHistory, newMove];
       setMoveHistory(nextHistory);
       
-      if (result.percentage >= 98) {
-        setTimeout(() => handleGameOver(true, nextHistory), 600);
+      const won = result.percentage >= 95; 
+      if (won) {
+        handleGameOver(true, nextHistory);
       }
     } catch (e) {
-      console.error("Colordle error", e);
+      console.error(e);
     } finally {
       setIsColorLoading(false);
     }
   }, [isPaused, isWon, isLost, isColorLoading, targetColorName, colordleGuesses, moveHistory, handleGameOver]);
 
   // --- GEODLE ---
-  const handleGeodleSubmit = useCallback(async (guess: string) => {
+  // Fix: Implemented handleGeodleSubmit to handle country guessing logic.
+  const handleGeodleSubmit = useCallback(async (guessName: string) => {
     if (isPaused || isWon || isLost || isGeoLoading) return;
     setIsGeoLoading(true);
     try {
-      const result = await validateAndGetLocation(guess, targetCountry);
-      if (!result.isValid) return;
+      const result = await validateAndGetLocation(guessName, targetCountry);
+      if (!result.isValid) {
+        setIsGeoLoading(false);
+        return;
+      }
       const newMove: GeodleMove = {
         type: 'geo-guess',
         guessName: result.canonicalName,
@@ -273,16 +337,16 @@ const App: React.FC = () => {
         lat: result.lat,
         lng: result.lng
       };
-      const nextGuesses = [...geodleGuesses, newMove];
-      setGeodleGuesses(nextGuesses);
+      const newGuesses = [...geodleGuesses, newMove];
+      setGeodleGuesses(newGuesses);
       const nextHistory = [...moveHistory, newMove];
       setMoveHistory(nextHistory);
-      
+
       if (result.percentage >= 99.5) {
-        setTimeout(() => handleGameOver(true, nextHistory), 600);
+        handleGameOver(true, nextHistory);
       }
     } catch (e) {
-      console.error("Geodle error", e);
+      console.error(e);
     } finally {
       setIsGeoLoading(false);
     }
@@ -327,6 +391,7 @@ const App: React.FC = () => {
     setMoveHistory([]); setView(targetView); setCurrentGuess(''); setKeyStatus({}); setWordleResults([]); 
     setGuesses([]); setWordExplanation(''); setIsWordleValidating(false); setSelectedCell(null);
     setColordleGuesses([]); setColordleHint(null); setGeodleGuesses([]); setGeodleHint(null);
+    setUndoStack([]); setRedoStack([]);
   };
 
   const startSudoku = (l: Difficulty) => { 
@@ -403,14 +468,14 @@ const App: React.FC = () => {
                 <button onClick={() => setIsPaused(p => !p)} className="p-2 sm:p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><PauseIcon className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-900" /></button>
               </header>
 
-              <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-40 sm:pb-48">
+              <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-40 sm:pb-48 overflow-x-hidden">
                 {view === 'sudoku-game' && boardState && <Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} />}
                 {view === 'wordle-game' && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
                 {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] border-zinc-50 shadow-inner">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] border-zinc-50 shadow-inner">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 bg-white border-t border-zinc-100 pt-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
+              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 bg-white border-t border-zinc-100 pt-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} onUndo={handleUndo} onRedo={handleRedo} onReset={handleReset} show={!!selectedCell} canUndo={undoStack.length > 0} canRedo={redoStack.length > 0} /></footer>}
               {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
@@ -429,7 +494,7 @@ const App: React.FC = () => {
                       <p className="text-xl font-black uppercase tracking-tight truncate">{activeGameType === 'sudoku' ? 'SUDOKU GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
                       {wordExplanation && <p className="mt-3 text-[11px] font-medium text-zinc-600 italic">"{wordExplanation}"</p>}
                     </div>
-                    <button onClick={() => setView('hub')} className="w-full bg-black text-white py-5 rounded-full font-black uppercase tracking-[0.4em] shadow-xl text-[10px]">Back to Menu</button>
+                    <button onClick={() => { setView('hub'); setActiveGameType(null); }} className="w-full bg-black text-white py-5 rounded-full font-black uppercase tracking-[0.4em] shadow-xl text-[10px]">Back to Menu</button>
                   </div>
                 </div>
               )}

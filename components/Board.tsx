@@ -18,8 +18,8 @@ const Board: React.FC<BoardProps> = ({ boardState, selectedCell, onCellSelect, h
   };
 
   return (
-    <div className="flex items-center justify-center w-full px-2 sm:px-4">
-      <div className="w-full max-w-[min(90vw,400px,50vh)] aspect-square bg-zinc-900 grid grid-cols-9 grid-rows-9 p-[1px] rounded-xl shadow-2xl border-[1.5px] border-zinc-900 overflow-hidden">
+    <div className="flex items-center justify-center w-full px-2">
+      <div className="w-full max-w-[min(94vw,420px,55vh)] aspect-square bg-zinc-900 grid grid-cols-9 grid-rows-9 p-[1px] rounded-xl shadow-2xl border-[1.5px] border-zinc-900 overflow-hidden">
         {boardState.map((row, ri) => 
           row.map((cell, ci) => {
             const isSelected = selectedCell?.row === ri && selectedCell?.col === ci;
@@ -44,7 +44,7 @@ const Board: React.FC<BoardProps> = ({ boardState, selectedCell, onCellSelect, h
                 `}
               >
                 <span className={`
-                  text-lg sm:text-2xl font-black tabular-nums
+                  text-base sm:text-2xl font-black tabular-nums
                   ${isSelected ? 'text-white' : cell.isError ? 'text-red-500 animate-shake' : cell.readonly ? 'text-zinc-900' : 'text-blue-600 font-bold'}
                 `}>
                   {cell.value !== 0 ? cell.value : ''}
