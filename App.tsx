@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Difficulty, BoardState, Grid, Move, CompletedGame, InProgressGame, WordleStatus,
-  ColordleMove, WordleMove, GeodleMove, GameSettings
+  ColordleMove, WordleMove, WordleInputMove, GeodleMove, GameSettings
 } from './types.ts';
 import { GoogleGenAI } from "@google/genai";
 import { generateSudoku } from './services/sudokuService.ts';
@@ -174,6 +174,8 @@ const App: React.FC = () => {
       if (!valid) { 
         setIsWordleValidating(false);
         setWordleShakeTrigger(p => p + 1); 
+        // Reset shake trigger after animation finishes
+        setTimeout(() => setWordleShakeTrigger(0), 500);
         return; 
       }
       const feedback = getWordFeedback(wordToValidate, targetWord);
@@ -238,27 +240,21 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Stats/History detail open? Close it.
         if (selectedHistoryGame) { 
           setSelectedHistoryGame(null); 
           return; 
         }
-
-        // Active game view?
         if (view.includes('-game')) {
-          // If finished, Esc goes back to hub
           if (isWon || isLost) {
             setView('hub');
             setIsPaused(false);
             setActiveGameType(null);
             return;
           }
-          // Otherwise toggle pause menu
+          // Correct toggle behavior for Escape key
           setIsPaused(prev => !prev);
           return;
         }
-
-        // Game menu or secondary screen open? Go to Hub.
         if (view !== 'hub') {
           setView('hub');
           setIsPaused(false);
@@ -267,7 +263,6 @@ const App: React.FC = () => {
         }
       }
 
-      // Input field bypass
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         if (e.key === 'Enter') {
           const val = (document.activeElement as HTMLInputElement).value;
@@ -282,8 +277,16 @@ const App: React.FC = () => {
         if (e.key >= '1' && e.key <= '9') handleSudokuInput(parseInt(e.key));
         if (e.key === 'Backspace') handleSudokuErase();
       } else if (view === 'wordle-game') {
-        if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) setCurrentGuess(p => p + e.key.toUpperCase());
-        if (e.key === 'Backspace') setCurrentGuess(p => p.slice(0, -1));
+        if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) {
+          const next = currentGuess + e.key.toUpperCase();
+          setCurrentGuess(next);
+          setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
+        }
+        if (e.key === 'Backspace') {
+          const next = currentGuess.slice(0, -1);
+          setCurrentGuess(next);
+          setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
+        }
         if (e.key === 'Enter') handleWordleSubmit();
       }
     };
@@ -317,7 +320,6 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container relative bg-zinc-100 overflow-hidden font-sans">
-      {/* HUB View */}
       <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 transition-opacity" style={{ opacity: view === 'hub' ? 1 : 0.4 }}>
         <h1 className="text-[min(15vw,100px)] font-black tracking-tighter text-black leading-none mb-12 animate-fade-in">ZEN</h1>
         <div className="w-full max-w-xs space-y-4">
@@ -338,9 +340,8 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Main View Layer */}
       {view !== 'hub' && (
-        <div className="absolute inset-0 bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.15)] rounded-t-[3.5rem] border-t border-zinc-200 z-50 overflow-y-auto no-scrollbar animate-fade-in">
+        <div className="absolute inset-0 bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.15)] border-t border-zinc-200 z-50 overflow-y-auto no-scrollbar animate-fade-in">
           {view.includes('-menu') && (
             <div className="h-full flex flex-col items-center justify-center p-12 text-center">
               <h2 className="text-7xl font-black tracking-tighter mb-4 uppercase text-black">{activeGameType}</h2>
@@ -390,9 +391,16 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6 sm:gap-10"><div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2.5rem] sm:rounded-[3.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] sm:border-[8px] border-zinc-50 shadow-inner"><svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg></div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {/* Input Overlays */}
               {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 sm:pb-10 bg-white border-t border-zinc-100 pt-3 sm:pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
-              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => {
+                const next = currentGuess + k;
+                setCurrentGuess(next);
+                setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
+              }} onDelete={() => {
+                const next = currentGuess.slice(0, -1);
+                setCurrentGuess(next);
+                setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
+              }} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 
@@ -416,19 +424,45 @@ const App: React.FC = () => {
               )}
 
               {(isWon || isLost) && (
-                <div className="fixed inset-0 z-[120] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
-                  <div className="text-center w-full max-sm:max-w-xs">
-                    <h2 className="text-6xl sm:text-7xl font-black mb-4 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
-                    <div className="bg-zinc-50 rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 border border-zinc-100 mb-8 sm:mb-10">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 animate-fade-in">
+                  {/* Backdrop */}
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+                  
+                  {/* Result Card */}
+                  <div className="relative bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-[0_32px_80px_rgba(0,0,0,0.15)] border border-zinc-200 animate-pop-in text-center">
+                    <h2 className={`text-5xl font-black mb-6 uppercase tracking-tighter ${isWon ? 'text-black' : 'text-zinc-500'}`}>
+                      {isWon ? 'SOLVED' : 'FAILED'}
+                    </h2>
+                    
+                    <div className="bg-zinc-50 rounded-[2.5rem] p-6 border border-zinc-100 mb-8">
                       <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
-                      <p className="text-2xl sm:text-3xl font-black uppercase tracking-tight truncate px-4">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
-                      {wordExplanation && <p className="mt-3 text-[12px] sm:text-[13px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
-                      <div className="mt-6 pt-6 border-t border-zinc-200 grid grid-cols-2 gap-4">
-                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Time</p><p className="text-xl sm:text-2xl font-black tabular-nums">{formatTime(elapsedTime)}</p></div>
-                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Status</p><p className={`text-xl sm:text-2xl font-black ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>{isWon ? 'WIN' : 'LOSS'}</p></div>
+                      <p className="text-xl font-black uppercase tracking-tight truncate px-2">
+                        {activeGameType === 'sudoku' ? 'SUDOKU GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}
+                      </p>
+                      {wordExplanation && <p className="mt-3 text-[11px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
+                      
+                      <div className="mt-5 pt-5 border-t border-zinc-200 flex justify-around">
+                        <div className="text-center">
+                          <p className="text-[8px] font-bold text-zinc-400 uppercase mb-0.5">Time</p>
+                          <p className="text-lg font-black tabular-nums leading-none">{formatTime(elapsedTime)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[8px] font-bold text-zinc-400 uppercase mb-0.5">Status</p>
+                          <p className={`text-lg font-black leading-none ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {isWon ? 'WIN' : 'LOSS'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <button onClick={() => setView('hub')} className="w-full bg-black text-white py-6 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all text-[10px]">Back to Menu</button>
+
+                    <div className="flex flex-col gap-3">
+                      <button 
+                        onClick={() => setView('hub')} 
+                        className="w-full bg-black text-white py-5 rounded-full font-black uppercase tracking-[0.4em] shadow-xl active:scale-[0.98] transition-all text-[10px]"
+                      >
+                        Back to Menu
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -441,9 +475,6 @@ const App: React.FC = () => {
         <StatisticsModal 
           game={selectedHistoryGame} 
           onClose={() => setSelectedHistoryGame(null)} 
-          onBringToGame={() => {
-            setSelectedHistoryGame(null);
-          }}
         />
       )}
     </div>

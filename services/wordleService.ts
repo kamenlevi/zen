@@ -1,6 +1,17 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { Difficulty, WordleStatus } from '../types.ts';
+
+// Expanded internal dictionaries to ensure common words work perfectly offline/locally.
+const COMMON_WORDS = new Set([
+  'APPLE', 'BEACH', 'BRAIN', 'BREAD', 'BRUSH', 'CHAIR', 'CHEST', 'CHORD', 'CLICK', 'CLOCK',
+  'CLOUD', 'DANCE', 'DIARY', 'DRINK', 'EARTH', 'FEAST', 'FIELD', 'FRUIT', 'GLASS', 'GRAPE',
+  'GREEN', 'HEART', 'HOUSE', 'JUICE', 'LIGHT', 'LEMON', 'LUCKY', 'MONEY', 'MUSIC', 'NIGHT',
+  'OCEAN', 'PARTY', 'PIANO', 'PILOT', 'PLANE', 'PHONE', 'PIZZA', 'PLANT', 'RADIO', 'RIVER',
+  'ROBOT', 'SHIRT', 'SHOES', 'SMILE', 'SNAKE', 'SOUND', 'SPACE', 'SPOON', 'STORM', 'TABLE',
+  'TIGER', 'TOAST', 'TOUCH', 'TRAIN', 'TRUCK', 'VOICE', 'WATER', 'WATCH', 'WHALE', 'WORLD',
+  'WRITE', 'YOUTH', 'ZEBRA', 'STORE', 'PLATE', 'SHINE', 'GREAT', 'LARGE', 'SMALL', 'SWIFT'
+]);
 
 const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
   [Difficulty.Easy]: ['HEART', 'MUSIC', 'WATER', 'PEACE', 'LIGHT', 'WORLD', 'BREAD', 'HOUSE', 'NIGHT', 'WHITE', 'GREEN', 'APPLE', 'GRAPE', 'POWER', 'CLOCK', 'SMILE', 'VOICE', 'SOUND', 'PLACE', 'TABLE', 'SHINE', 'STORY', 'PHONE', 'TRAIN', 'CLEAN', 'DANCE', 'SHORE', 'PIANO'],
@@ -10,53 +21,98 @@ const WORDS_BY_DIFFICULTY: Record<Difficulty, string[]> = {
   [Difficulty.Master]: ['FIFIS', 'XYLEM', 'CRWTH', 'AIOLI', 'SYBAR', 'OORIE', 'ZOWIE', 'SABRA', 'REIFY', 'SQUAB', 'ZARFS', 'YAMEN', 'XEBEC', 'WREAK', 'VOLTE', 'ULNAE', 'TYPIC', 'SWALE', 'RUCHE', 'QUATE', 'QOPHS', 'MYLAR', 'KAIAK', 'IDYLL', 'ETUDE', 'DERTH']
 };
 
+/**
+ * Strict linguistic heuristic to catch junk input instantly.
+ * This is designed to block "AAAAA", "QWERT", "ZXCVB", and other mashing patterns.
+ */
+function isLinguisticJunk(word: string): boolean {
+  const w = word.toUpperCase();
+  const chars = w.split('');
+  const unique = new Set(chars);
+  
+  // 1. Repetitive strings (AAAAA, BBBBB, etc.)
+  if (unique.size <= 1) return true;
+  
+  // 2. High frequency of a single character (e.g., AAAAB)
+  const counts: Record<string, number> = {};
+  for (const c of chars) {
+    counts[c] = (counts[c] || 0) + 1;
+    if (counts[c] >= 4) return true;
+  }
+
+  // 3. Obvious keyboard mashes
+  const commonMashes = ['ASDFG', 'QWERT', 'ZXCVB', 'HJKLM', 'POIUZ', 'YXCVM'];
+  if (commonMashes.includes(w)) return true;
+
+  // 4. Missing vowels (Vowels are A, E, I, O, U and Y)
+  // Almost every 5-letter English word has at least one of these.
+  const hasVowel = /[AEIOUY]/.test(w);
+  if (!hasVowel) return true;
+
+  // 5. Implausible consonant clusters (e.g., "RTZPQ")
+  // Check for 4 or more consecutive consonants (very rare in valid 5-letter words)
+  if (/[BCDFGHJKLMNPQRSTVWXZ]{4,}/.test(w)) {
+    // Exception for specific valid clusters like 'THRILL' or 'SCHEME' but those aren't 5 letters
+    // For 5 letters, 4 consonants in a row is almost always junk (e.g., "STRNG" is 5 but not a full word)
+    // We'll be slightly lenient for things like "STRENGTH" (8) but for 5 letters, 4 is a strong junk signal.
+    return true;
+  }
+
+  return false;
+}
+
 export function generateWordleWord(difficulty: Difficulty): string {
   const words = WORDS_BY_DIFFICULTY[difficulty] || WORDS_BY_DIFFICULTY[Difficulty.Medium];
   return words[Math.floor(Math.random() * words.length)].toUpperCase();
 }
 
 /**
- * Validates a word using the Gemini API with a strict JSON schema for high reliability.
+ * High-accuracy validation using gemini-3-pro-preview.
  */
 export async function isValidWord(word: string): Promise<boolean> {
-  if (!word || word.length !== 5) return false;
-  const w = word.toUpperCase();
+  const w = word.trim().toUpperCase();
+  if (w.length !== 5) return false;
 
-  // Check internal lists first for instant verification
-  for (const level of Object.values(WORDS_BY_DIFFICULTY)) {
-    if (level.includes(w)) return true;
+  // 1. Instant check against junk heuristics
+  if (isLinguisticJunk(w)) {
+    console.debug(`[Wordle] "${w}" rejected by local junk filter.`);
+    return false;
+  }
+
+  // 2. Instant check against internal dictionaries
+  if (COMMON_WORDS.has(w)) return true;
+  for (const list of Object.values(WORDS_BY_DIFFICULTY)) {
+    if (list.includes(w)) return true;
   }
 
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === 'undefined') return true;
+  // If no API key is available locally, we trust the junk filter.
+  // This prevents the "AAAAA is allowed" issue for users without keys.
+  if (!apiKey || apiKey === 'undefined' || apiKey === '') {
+    console.warn("[Wordle] No API key detected. Using strict heuristics.");
+    return !isLinguisticJunk(w);
+  }
 
   const ai = new GoogleGenAI({ apiKey });
   try {
+    // Using gemini-3-pro-preview for "slower but better" accuracy.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Is "${w}" a valid English word found in standard dictionaries? It must be a 5-letter word.`,
-      config: { 
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isValid: {
-              type: Type.BOOLEAN,
-              description: "Whether the word is a valid English word."
-            }
-          },
-          required: ["isValid"]
-        }
-      }
+      model: 'gemini-3-pro-preview',
+      contents: `Linguistic Verification Task:
+      Is "${w}" a real, recognized 5-letter English word (dictionary word, common plural, or verb form)?
+      
+      RULES:
+      - Reply ONLY with "VALID" or "INVALID".
+      - Strictly reject non-words, keyboard mashing, and strings of random letters.`,
     });
 
-    const result = JSON.parse(response.text || '{"isValid": true}');
-    return result.isValid;
+    const result = response.text?.trim().toUpperCase();
+    console.debug(`[Wordle] Pro API result for "${w}": ${result}`);
+    return result === 'VALID';
   } catch (e) {
-    console.error("Word validation API error:", e);
-    // If API fails, we fallback to true to prevent blocking users, 
-    // but the schema approach makes failure much less likely.
-    return true; 
+    console.error("[Wordle] Validation API failure:", e);
+    // On failure, fallback to our strict junk filter
+    return !isLinguisticJunk(w);
   }
 }
 

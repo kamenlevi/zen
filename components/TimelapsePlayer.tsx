@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Grid, Move, WordleMove, ColordleMove, GeodleMove, CellMove } from '../types.ts';
+import { Grid, Move, WordleMove, WordleInputMove, ColordleMove, GeodleMove, CellMove } from '../types.ts';
 import { PlayIcon, PauseIcon, ResetIcon } from './icons.tsx';
 import MiniBoard from './MiniBoard.tsx';
 import MiniWordleBoard from './MiniWordleBoard.tsx';
@@ -31,7 +31,7 @@ const TimelapsePlayer: React.FC<TimelapsePlayerProps> = ({ gameType, initialStat
           }
           return prev + 1;
         });
-      }, gameType === 'sudoku' ? 350 : 900);
+      }, gameType === 'sudoku' ? 350 : 250);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
@@ -45,19 +45,57 @@ const TimelapsePlayer: React.FC<TimelapsePlayerProps> = ({ gameType, initialStat
         if (m.type === 'cell') {
           const cm = m as CellMove;
           currentGrid[cm.row][cm.col] = cm.value;
-        } else if (m.type === 'reset' as any) {
-           (initialState as Grid).forEach((row, ri) => row.forEach((val, ci) => {
-              currentGrid[ri][ci] = val;
-           }));
         }
       });
       return <MiniBoard board={currentGrid} className="w-full h-full" />;
     }
 
     if (gameType === 'wordle') {
-      const currentGuesses = moves.slice(0, currentStep + 1).map(m => (m as WordleMove).word);
-      const results = currentGuesses.map(w => getWordFeedback(w, solution as string));
-      return <MiniWordleBoard results={results} wordLength={5} />;
+      const history = moves.slice(0, currentStep + 1);
+      const submittedGuesses: string[] = [];
+      let currentInput = "";
+      
+      history.forEach(m => {
+        if (m.type === 'wordle-guess') {
+          submittedGuesses.push(m.word);
+          currentInput = "";
+        } else if (m.type === 'wordle-input') {
+          currentInput = m.text;
+        }
+      });
+
+      const rows = Array.from({ length: 6 });
+      return (
+        <div className="flex flex-col gap-1 w-full p-2 bg-zinc-50 rounded-2xl border border-zinc-100">
+          {rows.map((_, i) => {
+            const guess = submittedGuesses[i] || (i === submittedGuesses.length ? currentInput : '');
+            const isSubmitted = i < submittedGuesses.length;
+            const results = isSubmitted ? getWordFeedback(guess, solution as string) : null;
+
+            return (
+              <div key={i} className="flex gap-1 justify-center">
+                {Array.from({ length: 5 }).map((_, j) => {
+                  const char = guess[j] || '';
+                  const status = results ? results[j] : 'tbd';
+                  
+                  let bgColor = 'bg-white border-zinc-200';
+                  let textColor = 'text-black';
+                  if (status === 'correct') { bgColor = 'bg-emerald-600 border-emerald-600'; textColor = 'text-white'; }
+                  else if (status === 'present') { bgColor = 'bg-amber-500 border-amber-500'; textColor = 'text-white'; }
+                  else if (status === 'absent') { bgColor = 'bg-zinc-300 border-zinc-300'; textColor = 'text-white'; }
+                  else if (!isSubmitted && char) { bgColor = 'bg-white border-black'; }
+
+                  return (
+                    <div key={j} className={`w-8 h-8 flex items-center justify-center text-xs font-black uppercase rounded-sm border transition-all ${bgColor} ${textColor}`}>
+                      {char}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      );
     }
 
     if (gameType === 'colordle') {
@@ -98,7 +136,7 @@ const TimelapsePlayer: React.FC<TimelapsePlayerProps> = ({ gameType, initialStat
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className={`aspect-square ${gameType === 'sudoku' ? 'w-64 sm:w-72' : 'w-48'} mb-10 flex items-center justify-center`}>
+      <div className={`aspect-square ${gameType === 'sudoku' ? 'w-64 sm:w-72' : (gameType === 'wordle' ? 'w-56' : 'w-48')} mb-10 flex items-center justify-center`}>
         {renderState()}
       </div>
       
