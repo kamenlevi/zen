@@ -26,7 +26,7 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
               const char = guess[j] || '';
               const status = result ? result[j] : 'tbd';
 
-              let bgColor = 'bg-white border-zinc-200';
+              let bgColor = 'bg-white border-zinc-325';
               let textColor = 'text-black';
 
               if (status === 'correct') {
