@@ -28,7 +28,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
         <div className="flex flex-col gap-4">
           <button 
             onClick={onResume}
-            className="w-full flex items-center justify-between px-8 py-6 bg-black text-white rounded-[2rem] font-black uppercase tracking-widest text-[12px] shadow-xl active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-8 py-6 bg-black text-white rounded-full font-black uppercase tracking-widest text-[12px] shadow-xl active:scale-[0.98] transition-transform"
           >
             <span>Resume Game</span>
             <PlayIcon className="w-5 h-5" />
@@ -36,7 +36,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
 
           <button 
             onClick={onRestart}
-            className="w-full flex items-center justify-between px-8 py-6 bg-zinc-100 text-zinc-900 rounded-[2rem] font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-8 py-6 bg-zinc-100 text-zinc-900 rounded-full font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
           >
             <span>Restart</span>
             <ResetIcon className="w-5 h-5" />
@@ -46,7 +46,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
 
           <button 
             onClick={onExit}
-            className="w-full flex items-center justify-between px-8 py-6 bg-red-50 text-red-600 rounded-[2rem] font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-8 py-6 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
           >
             <span>Exit to Menu</span>
             <XIcon className="w-5 h-5" />

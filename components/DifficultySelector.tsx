@@ -15,7 +15,7 @@ const DifficultySelector: React.FC<DifficultySelectorProps> = ({ onSelectDifficu
         <button
           key={level}
           onClick={() => onSelectDifficulty(level)}
-          className="w-full py-5 text-[11px] tracking-[0.2em] text-zinc-600 bg-zinc-100 rounded-3xl hover:text-zinc-900 hover:bg-zinc-200 active:bg-zinc-900 active:text-white transition-all font-bold uppercase active:scale-[0.98]"
+          className="w-full py-5 text-[11px] tracking-[0.2em] text-zinc-600 bg-zinc-100 rounded-full hover:text-zinc-900 hover:bg-zinc-200 active:bg-zinc-900 active:text-white transition-all font-bold uppercase active:scale-[0.98]"
         >
           {level}
         </button>

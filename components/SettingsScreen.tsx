@@ -44,19 +44,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <Section title="Sudoku Dynamics">
             <Toggle 
               label="Highlight Related" 
-              desc="Visually emphasizes rows, columns, and 3x3 blocks that intersect your selected cell, helping you focus on possible numbers."
+              desc="Visually emphasizes rows, columns, and 3x3 blocks that intersect your selected cell."
               value={settings.sudoku.highlightRelated} 
               onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightRelated: v } })} 
             />
             <Toggle 
               label="Highlight Matching" 
-              desc="Instantly dims other numbers to highlight all instances of the number currently selected, making pattern spotting easier."
+              desc="Instantly highlights all instances of the number currently selected."
               value={settings.sudoku.highlightSameValue} 
               onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightSameValue: v } })} 
             />
             <Toggle 
               label="Live Error Check" 
-              desc="Immediately flags incorrect placements with a subtle red tint. Turn off for a classic, unassisted mental challenge."
+              desc="Immediately flags incorrect placements with a subtle red tint."
               value={settings.sudoku.errorFeedback === 'immediate'} 
               onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, errorFeedback: v ? 'immediate' : 'manual' } })} 
             />
@@ -67,49 +67,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <Section title="Wordle Rules">
             <Toggle 
               label="Hard Mode" 
-              desc="Enforces strict guessing rules: any revealed hints (green or yellow letters) MUST be used in all following attempts."
+              desc="Enforces strict guessing rules: any revealed hints MUST be used in attempts."
               value={settings.wordle.hardMode} 
               onChange={(v) => onSettingsChange({ wordle: { ...settings.wordle, hardMode: v } })} 
             />
             <Toggle 
               label="High Contrast" 
-              desc="Replaces standard feedback colors with high-visibility orange and blue tones for better accessibility and clarity."
+              desc="Replaces feedback colors with high-visibility tones for better clarity."
               value={settings.wordle.highContrast} 
               onChange={(v) => onSettingsChange({ wordle: { ...settings.wordle, highContrast: v } })} 
-            />
-          </Section>
-        )}
-
-        {(context === 'global' || context === 'colordle') && (
-          <Section title="Colordle Assistance">
-            <Toggle 
-              label="Semantic Hints" 
-              desc="Enables AI-powered descriptions that evoke the 'feeling' of the target color through metaphors instead of RGB values."
-              value={settings.colordle.allowHints} 
-              onChange={(v) => onSettingsChange({ colordle: { ...settings.colordle, allowHints: v } })} 
-            />
-            <Toggle 
-              label="Haptic Logic" 
-              desc="Provides subtle physical vibration feedback on supported devices when your guess moves closer to the hidden hue."
-              value={settings.colordle.vibrationFeedback} 
-              onChange={(v) => onSettingsChange({ colordle: { ...settings.colordle, vibrationFeedback: v } })} 
-            />
-          </Section>
-        )}
-
-        {(context === 'global' || context === 'geodle') && (
-          <Section title="Geodle Navigation">
-            <Toggle 
-              label="Metric Units" 
-              desc="Display distances in Kilometers (KM). When off, standard nautical miles are used for a more classic navigational feel."
-              value={settings.geodle.metricUnits} 
-              onChange={(v) => onSettingsChange({ geodle: { ...settings.geodle, metricUnits: v } })} 
-            />
-            <Toggle 
-              label="Show Coordinates" 
-              desc="Reveals exact latitude and longitude of guessed centroids. Adds a layer of complexity for advanced geography enthusiasts."
-              value={settings.geodle.showCoordinates} 
-              onChange={(v) => onSettingsChange({ geodle: { ...settings.geodle, showCoordinates: v } })} 
             />
           </Section>
         )}
@@ -117,16 +83,16 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
         <Section title="System">
           <Toggle 
             label="UI Animations" 
-            desc="Toggles fluid motion transitions and game logic animations. Disabling can slightly improve performance on older devices."
+            desc="Toggles fluid motion transitions. Disabling can improve performance on older devices."
             value={settings.global.animations} 
             onChange={(v) => onSettingsChange({ global: { ...settings.global, animations: v } })} 
           />
-          <button className="w-full py-6 text-red-500 font-bold uppercase tracking-widest text-[11px] bg-red-50/50 border border-red-100 rounded-[2.5rem] active:bg-red-100 transition-colors">Wipe History & Stats</button>
+          <button className="w-full py-6 text-red-500 font-bold uppercase tracking-widest text-[11px] bg-red-50/50 border border-red-100 rounded-full active:bg-red-100 transition-colors">Wipe Records</button>
         </Section>
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-white via-white/80 to-transparent pt-16">
-        <button onClick={onBack} className="w-full max-w-xl mx-auto block bg-black text-white font-black py-7 rounded-[2.5rem] shadow-2xl uppercase tracking-[0.4em] text-[11px] active:scale-95 transition-all">Save & Exit</button>
+        <button onClick={onBack} className="w-full max-w-xl mx-auto block bg-black text-white font-black py-7 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[11px] active:scale-95 transition-all">Back to Menu</button>
       </footer>
     </div>
   );

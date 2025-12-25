@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { CompletedGame, InProgressGame, Difficulty, WordleMove } from '../types.ts';
+import { CompletedGame, InProgressGame, WordleMove } from '../types.ts';
 import MiniBoard from './MiniBoard.tsx';
 import MiniWordleBoard from './MiniWordleBoard.tsx';
 import MiniColordleBoard from './MiniColordleBoard.tsx';
@@ -33,7 +33,6 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
     const isSudoku = game.gameType === 'sudoku';
     const isWordle = game.gameType === 'wordle';
     const isColordle = game.gameType === 'colordle';
-    const isGeodle = game.gameType === 'geodle';
     const moves = game.moves || [];
     
     // Check for "FAILED" status in Wordle
@@ -98,7 +97,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
           {(['sudoku', 'wordle', 'colordle', 'geodle'] as const).map(t => (
             <button 
               key={t} onClick={() => setCategory(t)}
-              className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-full transition-all ${category === t ? 'bg-white text-black shadow-sm' : 'text-zinc-400'}`}
+              className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest rounded-full transition-all ${category === t ? 'bg-white text-black shadow-sm' : 'text-zinc-400'}`}
             >
               {t}
             </button>
@@ -106,7 +105,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto no-scrollbar space-y-10 pb-20 px-1">
+      <main className="flex-grow overflow-y-auto no-scrollbar space-y-10 pb-24 px-1">
         {inProgress.length > 0 && (
           <div>
             <h3 className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4">In Progress</h3>
@@ -121,13 +120,13 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         )}
         {inProgress.length === 0 && sortedCompleted.length === 0 && (
           <div className="pt-20 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-200">No records found</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-200">Empty Archives</p>
           </div>
         )}
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-white via-white/90 to-transparent">
-        <button onClick={onBack} className="w-full max-w-xs mx-auto block bg-black text-white font-black py-6 rounded-[2rem] shadow-2xl uppercase tracking-[0.4em] text-[10px] active:scale-95 transition-all">Back to Menu</button>
+        <button onClick={onBack} className="w-full max-w-xs mx-auto block bg-black text-white font-black py-6 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[10px] active:scale-95 transition-all">Back to Menu</button>
       </footer>
     </div>
   );

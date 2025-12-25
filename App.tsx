@@ -237,7 +237,14 @@ const App: React.FC = () => {
   // Global Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        if (e.key === 'Enter') {
+          const val = (document.activeElement as HTMLInputElement).value;
+          if (view === 'colordle-game') handleColordleSubmit(val);
+          if (view === 'geodle-game') handleGeodleSubmit(val);
+        }
+        return;
+      }
       if (e.key === 'Escape') {
         if (selectedHistoryGame) { setSelectedHistoryGame(null); return; }
         if (isPaused) { setIsPaused(false); return; }
@@ -258,7 +265,7 @@ const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [view, isPaused, isWon, isLost, isWordleValidating, currentGuess, handleSudokuInput, handleSudokuErase, handleWordleSubmit, activeGameType, selectedHistoryGame]);
+  }, [view, isPaused, isWon, isLost, isWordleValidating, currentGuess, handleSudokuInput, handleSudokuErase, handleWordleSubmit, handleColordleSubmit, handleGeodleSubmit, activeGameType, selectedHistoryGame]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -290,14 +297,20 @@ const App: React.FC = () => {
       <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 transition-opacity" style={{ opacity: view === 'hub' ? 1 : 0.4 }}>
         <h1 className="text-[min(15vw,100px)] font-black tracking-tighter text-black leading-none mb-12 animate-fade-in">ZEN</h1>
         <div className="w-full max-w-xs space-y-4">
-          <button onClick={() => { setActiveGameType('sudoku'); setView('sudoku-menu'); }} className="w-full py-6 bg-black text-white rounded-[2.5rem] font-black uppercase tracking-widest text-[13px] shadow-xl active:scale-95 transition-all">SUDOKU</button>
-          <button onClick={() => { setActiveGameType('wordle'); setView('wordle-menu'); }} className="w-full py-6 bg-white text-black rounded-[2.5rem] font-black uppercase tracking-widest text-[13px] border-2 border-black active:scale-95 transition-all">WORDLE</button>
-          <button onClick={() => { setActiveGameType('colordle'); setView('colordle-menu'); }} className="w-full py-6 bg-black text-white rounded-[2.5rem] font-black uppercase tracking-widest text-[13px] shadow-xl active:scale-95 transition-all">COLORDLE</button>
-          <button onClick={() => { setActiveGameType('geodle'); setView('geodle-menu'); }} className="w-full py-6 bg-white text-black rounded-[2.5rem] font-black uppercase tracking-widest text-[13px] border-2 border-black active:scale-95 transition-all">GEODLE</button>
+          <button onClick={() => { setActiveGameType('sudoku'); setView('sudoku-menu'); }} className="w-full py-6 bg-black text-white rounded-full font-black uppercase tracking-[0.2em] text-[13px] shadow-xl active:scale-95 transition-all">SUDOKU</button>
+          <button onClick={() => { setActiveGameType('wordle'); setView('wordle-menu'); }} className="w-full py-6 bg-white text-black rounded-full font-black uppercase tracking-[0.2em] text-[13px] border-2 border-black active:scale-95 transition-all">WORDLE</button>
+          <button onClick={() => { setActiveGameType('colordle'); setView('colordle-menu'); }} className="w-full py-6 bg-black text-white rounded-full font-black uppercase tracking-[0.2em] text-[13px] shadow-xl active:scale-95 transition-all">COLORDLE</button>
+          <button onClick={() => { setActiveGameType('geodle'); setView('geodle-menu'); }} className="w-full py-6 bg-white text-black rounded-full font-black uppercase tracking-[0.2em] text-[13px] border-2 border-black active:scale-95 transition-all">GEODLE</button>
         </div>
         <div className="mt-12 flex gap-8">
-          <button onClick={() => { setActiveGameType(null); setView('history'); }} className="flex flex-col items-center gap-2 group"><div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon /></div><span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">History</span></button>
-          <button onClick={() => { setActiveGameType(null); setView('settings'); }} className="flex flex-col items-center gap-2 group"><div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon className="rotate-90" /></div><span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Settings</span></button>
+          <button onClick={() => { setActiveGameType(null); setView('history'); }} className="flex flex-col items-center gap-2 group">
+            <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon /></div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">History</span>
+          </button>
+          <button onClick={() => { setActiveGameType(null); setView('settings'); }} className="flex flex-col items-center gap-2 group">
+            <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon className="rotate-90" /></div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Settings</span>
+          </button>
         </div>
       </div>
 
@@ -309,11 +322,11 @@ const App: React.FC = () => {
               <h2 className="text-7xl font-black tracking-tighter mb-4 uppercase text-black">{activeGameType}</h2>
               <DifficultySelector onSelectDifficulty={activeGameType === 'sudoku' ? startSudoku : activeGameType === 'wordle' ? startWordle : activeGameType === 'colordle' ? startColordle : startGeodle} />
               
-              <div className="flex gap-4 mt-8">
-                <button onClick={() => setView('history')} className="px-6 py-4 bg-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">History</button>
-                <button onClick={() => setView('settings')} className="px-6 py-4 bg-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">Settings</button>
+              <div className="flex gap-4 mt-12 w-full max-w-xs">
+                <button onClick={() => setView('history')} className="flex-1 py-5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">History</button>
+                <button onClick={() => setView('settings')} className="flex-1 py-5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">Settings</button>
               </div>
-              <button onClick={() => setView('hub')} className="mt-8 py-5 px-12 text-zinc-400 rounded-3xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Back to Hub</button>
+              <button onClick={() => setView('hub')} className="mt-6 py-6 w-full max-w-xs bg-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-xl active:scale-95 transition-all">Back to Menu</button>
             </div>
           )}
 
@@ -338,12 +351,12 @@ const App: React.FC = () => {
           {view.includes('-game') && (
             <div className="h-full flex flex-col">
               <header className="px-8 py-8 mt-4 flex items-center justify-between flex-shrink-0 z-[70]">
-                <button onClick={() => setView(`${activeGameType}-menu` as View)} className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 active:scale-90 transition-transform"><ChevronLeftIcon className="w-6 h-6 text-zinc-400" /></button>
+                <button onClick={() => setView(`${activeGameType}-menu` as View)} className="p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><ChevronLeftIcon className="w-6 h-6 text-zinc-400" /></button>
                 <div className="flex flex-col items-center">
                   <span className="text-[9px] uppercase font-black tracking-[0.4em] text-zinc-400 mb-1">{difficulty} • {activeGameType}</span>
                   <div className="flex items-center space-x-1 text-black"><ClockIcon className="w-3.5 h-3.5" /><span className="text-xl tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>
                 </div>
-                <button onClick={() => setIsPaused(p => !p)} className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 active:scale-90 transition-transform"><PauseIcon className="w-6 h-6 text-zinc-900" /></button>
+                <button onClick={() => setIsPaused(p => !p)} className="p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><PauseIcon className="w-6 h-6 text-zinc-900" /></button>
               </header>
 
               <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-44">
@@ -362,19 +375,19 @@ const App: React.FC = () => {
               {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setIsPaused(false); setView(`${activeGameType}-menu` as View); }} onRestart={() => { setIsPaused(false); resetGameState(`${activeGameType}-game` as View); if (activeGameType === 'sudoku') startSudoku(difficulty!); else if (activeGameType === 'wordle') startWordle(difficulty!); else if (activeGameType === 'colordle') startColordle(difficulty!); else startGeodle(difficulty!); }} gameType={activeGameType!} />}
 
               {(isWon || isLost) && (
-                <div className="fixed inset-0 z-[110] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
+                <div className="fixed inset-0 z-[120] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
                   <div className="text-center w-full max-w-sm">
                     <h2 className="text-7xl font-black mb-6 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
                     <div className="bg-zinc-50 rounded-[3.5rem] p-10 border border-zinc-100 mb-10">
                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Target</p>
-                      <p className="text-3xl font-black uppercase">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
+                      <p className="text-3xl font-black uppercase tracking-tight">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
                       {wordExplanation && <p className="mt-4 text-[13px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
                       <div className="mt-8 pt-8 border-t border-zinc-200 grid grid-cols-2">
-                        <div><p className="text-[9px] font-bold text-zinc-400">Time</p><p className="text-2xl font-black">{formatTime(elapsedTime)}</p></div>
+                        <div><p className="text-[9px] font-bold text-zinc-400">Time</p><p className="text-2xl font-black tabular-nums">{formatTime(elapsedTime)}</p></div>
                         <div><p className="text-[9px] font-bold text-zinc-400">Status</p><p className={`text-2xl font-black ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>{isWon ? 'WIN' : 'LOSS'}</p></div>
                       </div>
                     </div>
-                    <button onClick={() => setView(`${activeGameType}-menu` as View)} className="w-full bg-black text-white py-7 rounded-[2rem] font-black uppercase tracking-widest shadow-2xl">Menu</button>
+                    <button onClick={() => setView(`${activeGameType}-menu` as View)} className="w-full bg-black text-white py-7 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all text-[11px]">Back to Menu</button>
                   </div>
                 </div>
               )}
@@ -383,7 +396,19 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {selectedHistoryGame && <StatisticsModal game={selectedHistoryGame} onClose={() => setSelectedHistoryGame(null)} />}
+      {selectedHistoryGame && (
+        <StatisticsModal 
+          game={selectedHistoryGame} 
+          onClose={() => setSelectedHistoryGame(null)} 
+          onBringToGame={() => {
+            if (!('endTime' in selectedHistoryGame)) {
+              setSelectedHistoryGame(null);
+            } else {
+              setSelectedHistoryGame(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
