@@ -73,13 +73,17 @@ export async function isValidWord(word: string): Promise<boolean> {
     // We use a slow, high-quality check to satisfy the user's request for accuracy.
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
-      contents: `Perform a strict linguistic dictionary check. Is the 5-letter string "${w}" a valid, real English word found in standard dictionaries? 
+      contents: `Perform a strict linguistic dictionary check.
+      Is the 5-letter string "${w}" a valid, real English word found in standard dictionaries? 
+
       Strict guidelines:
-      - Reject abbreviation. 
+      - Reject abbreviations. 
       - Reject slang unless widely accepted.
       - Reject common typos (e.g., 'babie' is a typo of 'baby' and should be INVALID).
       - Reject keyboard mashes (e.g., 'fmodj').
+
       Only respond with the word "VALID" or "INVALID".`,
+
       config: { 
         thinkingConfig: { thinkingBudget: 2048 },
         temperature: 0 
