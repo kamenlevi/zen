@@ -34,6 +34,12 @@ export type WordleMove = {
   timestamp: number;
 };
 
+export type WordleInputMove = {
+  type: 'wordle-input';
+  text: string;
+  timestamp: number;
+};
+
 export type ColordleMove = {
   type: 'color-guess';
   guessName: string;
@@ -53,7 +59,7 @@ export type GeodleMove = {
   lng?: number;
 };
 
-export type Move = CellMove | WordleMove | ColordleMove | GeodleMove;
+export type Move = CellMove | WordleMove | WordleInputMove | ColordleMove | GeodleMove;
 
 // --- Persistence ---
 export interface CompletedGame {
