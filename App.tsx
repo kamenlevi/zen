@@ -59,26 +59,9 @@ const App: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   
-  // History and Progress
+  // Undo/Redo Stacks
   const [undoStack, setUndoStack] = useState<BoardState[]>([]);
   const [redoStack, setRedoStack] = useState<BoardState[]>([]);
-
-  // Load settings on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('zen_settings');
-    if (saved) {
-      try {
-        setSettings(JSON.parse(saved));
-      } catch (e) { console.error("Failed to load settings", e); }
-    }
-  }, []);
-
-  // Save settings when they change
-  const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    localStorage.setItem('zen_settings', JSON.stringify(updated));
-  };
 
   // Sudoku State
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -121,9 +104,26 @@ const App: React.FC = () => {
   
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<CompletedGame | InProgressGame | null>(null);
 
-  // Persistence: Save Progress
+  // Load settings on mount
   useEffect(() => {
-    if (view.includes('-game') && activeGameType && !isWon && !isLost && !isPaused) {
+    const saved = localStorage.getItem('zen_settings');
+    if (saved) {
+      try {
+        setSettings(JSON.parse(saved));
+      } catch (e) { console.error("Failed to load settings", e); }
+    }
+  }, []);
+
+  // Save settings when they change
+  const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    localStorage.setItem('zen_settings', JSON.stringify(updated));
+  };
+
+  // Persistence: Save Progress in Real-time
+  useEffect(() => {
+    if (view.includes('-game') && activeGameType && !isWon && !isLost) {
       const progress: InProgressGame = {
         id: `${activeGameType}-${difficulty}-${startTime}`,
         gameType: activeGameType,
@@ -135,9 +135,10 @@ const App: React.FC = () => {
         elapsedTime,
         moves: moveHistory
       };
-      localStorage.setItem(`zen_${activeGameType}_progress`, JSON.stringify([progress])); // Store as singleton for now or multi if needed
+      // Keep only one progress item per type for simplicity
+      localStorage.setItem(`zen_${activeGameType}_progress`, JSON.stringify([progress]));
     }
-  }, [view, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory, isWon, isLost, isPaused, targetWord, targetColor, targetCountry]);
+  }, [view, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory, isWon, isLost, targetWord, targetColor, targetCountry]);
 
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     if (explanation) setWordExplanation(explanation);
@@ -182,8 +183,8 @@ const App: React.FC = () => {
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
     
-    // Undo support
-    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({ ...c })))]);
+    // Push current state to undo stack before change
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack([]);
 
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
@@ -208,7 +209,7 @@ const App: React.FC = () => {
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
     
-    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({ ...c })))]);
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack([]);
 
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
@@ -219,24 +220,24 @@ const App: React.FC = () => {
   }, [selectedCell, boardState, isPaused, isWon, isLost]);
 
   const handleUndo = useCallback(() => {
-    if (undoStack.length === 0) return;
-    const last = undoStack[undoStack.length - 1];
-    setRedoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    if (undoStack.length === 0 || !boardState) return;
+    const lastState = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setUndoStack(prev => prev.slice(0, -1));
-    setBoardState(last);
+    setBoardState(lastState);
   }, [undoStack, boardState]);
 
   const handleRedo = useCallback(() => {
-    if (redoStack.length === 0) return;
-    const next = redoStack[redoStack.length - 1];
-    setUndoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    if (redoStack.length === 0 || !boardState) return;
+    const nextState = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack(prev => prev.slice(0, -1));
-    setBoardState(next);
+    setBoardState(nextState);
   }, [redoStack, boardState]);
 
   const handleReset = useCallback(() => {
-    if (!initialPuzzle) return;
-    setUndoStack(prev => [...prev, boardState!.map(r => r.map(c => ({ ...c })))]);
+    if (!initialPuzzle || !boardState) return;
+    setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack([]);
     setBoardState(initialPuzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 }))));
     setSelectedCell(null);
@@ -283,50 +284,40 @@ const App: React.FC = () => {
   }, [currentGuess, targetWord, guesses, isPaused, isWon, isLost, keyStatus, moveHistory, handleGameOver, isWordleValidating]);
 
   // --- COLORDLE ---
-  // Fix: Implemented handleColordleSubmit to handle color guessing logic.
-  const handleColordleSubmit = useCallback(async (guessName: string) => {
+  const handleColordleSubmit = useCallback(async (guess: string) => {
     if (isPaused || isWon || isLost || isColorLoading) return;
     setIsColorLoading(true);
     try {
-      const result = await getSemanticCloseness(guessName, targetColorName);
-      if (!result.isValid) {
-        setIsColorLoading(false);
-        return;
-      }
+      const result = await getSemanticCloseness(guess, targetColorName);
       const newMove: ColordleMove = {
         type: 'color-guess',
-        guessName: guessName.toUpperCase(),
+        guessName: guess,
         guessHex: result.hex,
         percentage: result.percentage,
         timestamp: Date.now()
       };
-      const newGuesses = [...colordleGuesses, newMove];
-      setColordleGuesses(newGuesses);
+      const nextGuesses = [...colordleGuesses, newMove];
+      setColordleGuesses(nextGuesses);
       const nextHistory = [...moveHistory, newMove];
       setMoveHistory(nextHistory);
       
-      const won = result.percentage >= 95; 
-      if (won) {
-        handleGameOver(true, nextHistory);
+      if (result.percentage >= 98) {
+        setTimeout(() => handleGameOver(true, nextHistory), 600);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Colordle error", e);
     } finally {
       setIsColorLoading(false);
     }
   }, [isPaused, isWon, isLost, isColorLoading, targetColorName, colordleGuesses, moveHistory, handleGameOver]);
 
   // --- GEODLE ---
-  // Fix: Implemented handleGeodleSubmit to handle country guessing logic.
-  const handleGeodleSubmit = useCallback(async (guessName: string) => {
+  const handleGeodleSubmit = useCallback(async (guess: string) => {
     if (isPaused || isWon || isLost || isGeoLoading) return;
     setIsGeoLoading(true);
     try {
-      const result = await validateAndGetLocation(guessName, targetCountry);
-      if (!result.isValid) {
-        setIsGeoLoading(false);
-        return;
-      }
+      const result = await validateAndGetLocation(guess, targetCountry);
+      if (!result.isValid) return;
       const newMove: GeodleMove = {
         type: 'geo-guess',
         guessName: result.canonicalName,
@@ -337,16 +328,16 @@ const App: React.FC = () => {
         lat: result.lat,
         lng: result.lng
       };
-      const newGuesses = [...geodleGuesses, newMove];
-      setGeodleGuesses(newGuesses);
+      const nextGuesses = [...geodleGuesses, newMove];
+      setGeodleGuesses(nextGuesses);
       const nextHistory = [...moveHistory, newMove];
       setMoveHistory(nextHistory);
-
+      
       if (result.percentage >= 99.5) {
-        handleGameOver(true, nextHistory);
+        setTimeout(() => handleGameOver(true, nextHistory), 600);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Geodle error", e);
     } finally {
       setIsGeoLoading(false);
     }
