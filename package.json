@@ -1,9 +1,9 @@
 {
-  "name": "zen",
+  "name": "zen-sudoku",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://kamenlevi.github.io/zen/",
+  "homepage": "https://<your-username>.github.io/<your-repo-name>/",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -12,7 +12,6 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@google/genai": "^1.34.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -20,7 +19,7 @@
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@vitejs/plugin-react": "^4.2.0",
-    "gh-pages": "^6.3.0",
+    "gh-pages": "^6.1.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
   }
