@@ -77,7 +77,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
               <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
                 <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
                 <p className={`text-xl font-black uppercase ${isCompleted ? 'text-emerald-600' : 'text-amber-500'}`}>
-                  {isCompleted ? 'Mission Solved' : 'In Progress'}
+                  {isCompleted ? 'Solved' : 'In Progress'}
                 </p>
               </div>
 
