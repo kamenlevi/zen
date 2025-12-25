@@ -90,7 +90,10 @@ export async function isValidWord(word: string): Promise<boolean> {
       }
     });
 
-    const result = response.text?.trim().toUpperCase();
+   const result =
+  response.candidates?.[0]?.content?.parts?.[0]?.text
+    ?.trim()
+    .toUpperCase();
     return result === 'VALID';
   } catch (e) {
     console.error("Word validation API error:", e);
