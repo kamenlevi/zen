@@ -422,19 +422,45 @@ const App: React.FC = () => {
               )}
 
               {(isWon || isLost) && (
-                <div className="fixed inset-0 z-[120] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
-                  <div className="text-center w-full max-sm:max-w-xs">
-                    <h2 className="text-6xl sm:text-7xl font-black mb-4 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
-                    <div className="bg-zinc-50 rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 border border-zinc-100 mb-8 sm:mb-10">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 animate-fade-in">
+                  {/* Backdrop */}
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+                  
+                  {/* Result Card */}
+                  <div className="relative bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-[0_32px_80px_rgba(0,0,0,0.15)] border border-zinc-200 animate-pop-in text-center">
+                    <h2 className={`text-5xl font-black mb-6 uppercase tracking-tighter ${isWon ? 'text-black' : 'text-zinc-500'}`}>
+                      {isWon ? 'SOLVED' : 'FAILED'}
+                    </h2>
+                    
+                    <div className="bg-zinc-50 rounded-[2.5rem] p-6 border border-zinc-100 mb-8">
                       <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
-                      <p className="text-2xl sm:text-3xl font-black uppercase tracking-tight truncate px-4">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
-                      {wordExplanation && <p className="mt-3 text-[12px] sm:text-[13px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
-                      <div className="mt-6 pt-6 border-t border-zinc-200 grid grid-cols-2 gap-4">
-                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Time</p><p className="text-xl sm:text-2xl font-black tabular-nums">{formatTime(elapsedTime)}</p></div>
-                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Status</p><p className={`text-xl sm:text-2xl font-black ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>{isWon ? 'WIN' : 'LOSS'}</p></div>
+                      <p className="text-xl font-black uppercase tracking-tight truncate px-2">
+                        {activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}
+                      </p>
+                      {wordExplanation && <p className="mt-3 text-[11px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
+                      
+                      <div className="mt-5 pt-5 border-t border-zinc-200 flex justify-around">
+                        <div className="text-center">
+                          <p className="text-[8px] font-bold text-zinc-400 uppercase mb-0.5">Time</p>
+                          <p className="text-lg font-black tabular-nums leading-none">{formatTime(elapsedTime)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[8px] font-bold text-zinc-400 uppercase mb-0.5">Status</p>
+                          <p className={`text-lg font-black leading-none ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {isWon ? 'WIN' : 'LOSS'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <button onClick={() => setView('hub')} className="w-full bg-black text-white py-6 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all text-[10px]">Back to Menu</button>
+
+                    <div className="flex flex-col gap-3">
+                      <button 
+                        onClick={() => setView('hub')} 
+                        className="w-full bg-black text-white py-5 rounded-full font-black uppercase tracking-[0.4em] shadow-xl active:scale-[0.98] transition-all text-[10px]"
+                      >
+                        Back to Menu
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
