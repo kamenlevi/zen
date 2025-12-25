@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Difficulty, BoardState, Grid, Move, CompletedGame, InProgressGame, WordleStatus,
-  ColordleMove, WordleMove, WordleInputMove, GeodleMove, GameSettings
+  ColordleMove, WordleMove, WordleInputMove, GeodleMove
 } from './types.ts';
 import { GoogleGenAI } from "@google/genai";
 import { generateSudoku } from './services/sudokuService.ts';
@@ -21,27 +21,17 @@ import GeodleInput from './components/GeodleInput.tsx';
 import DifficultySelector from './components/DifficultySelector.tsx';
 import PauseMenu from './components/PauseMenu.tsx';
 import HistoryScreen from './components/HistoryScreen.tsx';
-import SettingsScreen from './components/SettingsScreen.tsx';
 import StatisticsModal from './components/StatisticsModal.tsx';
-import { ClockIcon, PauseIcon, ChevronLeftIcon, SettingsIcon } from './components/icons.tsx';
+import { ClockIcon, PauseIcon, ChevronLeftIcon } from './components/icons.tsx';
 
-type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history' | 'settings';
+type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history';
 
 const MAX_WORDLE_GUESSES = 6;
-
-const DEFAULT_SETTINGS: GameSettings = {
-  sudoku: { highlightRelated: true, highlightSameValue: true, errorFeedback: 'immediate' },
-  wordle: { hardMode: false, highContrast: false },
-  colordle: { allowHints: true, vibrationFeedback: true },
-  geodle: { metricUnits: true, showCoordinates: false },
-  global: { animations: true, sounds: true }
-};
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('hub');
   const [activeGameType, setActiveGameType] = useState<'sudoku' | 'wordle' | 'colordle' | 'geodle' | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   
   // Sudoku State
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -85,14 +75,6 @@ const App: React.FC = () => {
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
   
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<CompletedGame | InProgressGame | null>(null);
-
-  // Persistence Load
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('zen_settings');
-      if (saved) setSettings(JSON.parse(saved));
-    } catch (e) {}
-  }, []);
 
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     if (explanation) setWordExplanation(explanation);
@@ -140,7 +122,8 @@ const App: React.FC = () => {
     setRedoStack([]);
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
     newBoard[row][col].value = num;
-    if (settings.sudoku.errorFeedback === 'immediate') newBoard[row][col].isError = solution[row][col] !== num;
+    // Defaulting to immediate feedback as it's the standard for this app now
+    newBoard[row][col].isError = solution[row][col] !== num;
     setBoardState(newBoard);
     setHighlightedValue(num);
     const newMove: Move = { type: 'cell', row, col, value: num, timestamp: Date.now() };
@@ -150,7 +133,7 @@ const App: React.FC = () => {
     if (newBoard.every((r, ri) => r.every((c, ci) => c.value === solution[ri][ci]))) {
       setTimeout(() => handleGameOver(true, nextHistory), 600);
     }
-  }, [selectedCell, boardState, solution, isPaused, isWon, isLost, settings.sudoku.errorFeedback, handleGameOver, moveHistory]);
+  }, [selectedCell, boardState, solution, isPaused, isWon, isLost, handleGameOver, moveHistory]);
 
   const handleSudokuErase = useCallback(() => {
     if (!selectedCell || !boardState || isPaused || isWon || isLost) return;
@@ -174,7 +157,6 @@ const App: React.FC = () => {
       if (!valid) { 
         setIsWordleValidating(false);
         setWordleShakeTrigger(p => p + 1); 
-        // Reset shake trigger after animation finishes
         setTimeout(() => setWordleShakeTrigger(0), 500);
         return; 
       }
@@ -251,7 +233,6 @@ const App: React.FC = () => {
             setActiveGameType(null);
             return;
           }
-          // Correct toggle behavior for Escape key
           setIsPaused(prev => !prev);
           return;
         }
@@ -333,10 +314,6 @@ const App: React.FC = () => {
             <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon /></div>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">History</span>
           </button>
-          <button onClick={() => { setActiveGameType(null); setView('settings'); }} className="flex flex-col items-center gap-2 group">
-            <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><SettingsIcon className="w-6 h-6 text-zinc-400" /></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Settings</span>
-          </button>
         </div>
       </div>
 
@@ -349,7 +326,6 @@ const App: React.FC = () => {
               
               <div className="flex gap-4 mt-12 w-full max-w-xs">
                 <button onClick={() => setView('history')} className="flex-1 py-5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">History</button>
-                <button onClick={() => setView('settings')} className="flex-1 py-5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 active:scale-95 transition-all">Settings</button>
               </div>
               <button onClick={() => setView('hub')} className="mt-6 py-6 w-full max-w-xs bg-black text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-xl active:scale-95 transition-all">Back to Menu</button>
             </div>
@@ -361,15 +337,6 @@ const App: React.FC = () => {
               setCategory={(c) => setActiveGameType(c)} 
               onBack={() => setView('hub')} 
               onOpenStats={(g) => setSelectedHistoryGame(g)}
-            />
-          )}
-
-          {view === 'settings' && (
-            <SettingsScreen 
-              context={activeGameType || 'global'} 
-              settings={settings} 
-              onSettingsChange={(s) => setSettings(prev => ({ ...prev, ...s }))} 
-              onBack={() => setView('hub')}
             />
           )}
 
@@ -425,22 +392,17 @@ const App: React.FC = () => {
 
               {(isWon || isLost) && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 animate-fade-in">
-                  {/* Backdrop */}
                   <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
-                  
-                  {/* Result Card */}
                   <div className="relative bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-[0_32px_80px_rgba(0,0,0,0.15)] border border-zinc-200 animate-pop-in text-center">
                     <h2 className={`text-5xl font-black mb-6 uppercase tracking-tighter ${isWon ? 'text-black' : 'text-zinc-500'}`}>
                       {isWon ? 'SOLVED' : 'FAILED'}
                     </h2>
-                    
                     <div className="bg-zinc-50 rounded-[2.5rem] p-6 border border-zinc-100 mb-8">
                       <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
                       <p className="text-xl font-black uppercase tracking-tight truncate px-2">
                         {activeGameType === 'sudoku' ? 'SUDOKU GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}
                       </p>
                       {wordExplanation && <p className="mt-3 text-[11px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
-                      
                       <div className="mt-5 pt-5 border-t border-zinc-200 flex justify-around">
                         <div className="text-center">
                           <p className="text-[8px] font-bold text-zinc-400 uppercase mb-0.5">Time</p>
@@ -454,7 +416,6 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     </div>
-
                     <div className="flex flex-col gap-3">
                       <button 
                         onClick={() => setView('hub')} 
