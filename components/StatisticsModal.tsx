@@ -81,6 +81,13 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
             </div>
             
             <div className="w-full md:w-1/2 flex flex-col gap-4 justify-center">
+              {game.gameType === 'wordle' && isCompleted && (
+                <div className="bg-zinc-900 p-5 rounded-[2rem] border border-zinc-800 shadow-lg mb-2">
+                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-1">Correct Word</p>
+                  <p className="text-2xl font-black text-white tracking-widest uppercase">{targetSolution}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
                   <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Time</p>
@@ -105,25 +112,6 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
               )}
             </div>
           </div>
-
-          {attemptLog.length > 0 && (
-            <div className="pt-8 border-t border-zinc-100">
-              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-4">Attempt Log</h3>
-              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto no-scrollbar px-1">
-                {attemptLog.map((attempt, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-3 px-6 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-300 transition-colors">
-                    <span className="text-[10px] font-black text-zinc-300 tabular-nums">#0{idx + 1}</span>
-                    <span className="text-[14px] font-black tracking-widest text-zinc-900 uppercase">
-                      {game.gameType === 'wordle' ? (attempt as WordleMove).word : (attempt as any).guessName}
-                    </span>
-                    <span className="text-[10px] font-bold text-zinc-400 tabular-nums">
-                      {game.gameType === 'wordle' ? '' : `${Math.round((attempt as any).percentage || 0)}%`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="pt-10 border-t border-zinc-100">
             <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-8 text-center">Solution Timelapse</h3>
