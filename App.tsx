@@ -439,48 +439,47 @@ const App: React.FC = () => {
           {view === 'settings' && <SettingsScreen context={activeGameType || 'global'} settings={settings} onSettingsChange={handleSettingsChange} onBack={handleBack} />}
 
           {view.includes('-game') && (
-            <div className="h-full flex flex-col relative">
-              <header className="px-5 py-6 mt-2 flex items-center justify-between flex-shrink-0 z-[70]">
-                <button onClick={handleBack} className="w-14 h-14 bg-black rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl">
-                  <ChevronLeftIcon className="w-6 h-6 text-white" />
+            <div className="h-full flex flex-col relative justify-between overflow-hidden">
+              <header className="px-5 py-4 flex items-center justify-between flex-shrink-0 z-[70]">
+                <button onClick={handleBack} className="w-12 h-12 bg-black rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl">
+                  <ChevronLeftIcon className="w-5 h-5 text-white" />
                 </button>
                 <div className="flex flex-col items-center">
-                  <h2 className="text-4xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <span className="text-[11px] sm:text-[13px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
+                  <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className="text-[10px] sm:text-[13px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
                     {settings.sudoku.timerVisible && (
-                      <>
-                        <span className="text-zinc-200">|</span>
-                        <div className="flex items-center space-x-1 text-zinc-900">
-                          <ClockIcon className="w-3 h-3 text-black" />
-                          <span className="text-[15px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span>
-                        </div>
-                      </>
+                      <div className="flex items-center space-x-1 text-zinc-900 ml-2">
+                        <ClockIcon className="w-3 h-3 text-black opacity-40" />
+                        <span className="text-[13px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span>
+                      </div>
                     )}
                   </div>
                 </div>
-                <button onClick={() => setIsPaused(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 transition-transform shadow-sm">
-                  <PauseIcon className="w-6 h-6 text-black" />
+                <button onClick={() => setIsPaused(p => !p)} className="w-12 h-12 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 transition-transform shadow-sm">
+                  <PauseIcon className="w-5 h-5 text-black" />
                 </button>
               </header>
 
-              <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-48 sm:pb-56">
+              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-4">
                 {isWordleLoading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/95 backdrop-blur-md">
-                    <div className="w-12 h-12 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-6"></div>
+                    <div className="w-10 h-10 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-4"></div>
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">Loading Session</p>
                   </div>
                 )}
                 {view === 'sudoku-game' && boardState && <div className="w-full scale-[1.05] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
-                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} scale-[1.1] sm:scale-100`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
-                {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-8"><div className="w-36 h-36 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[8px] border-white shadow-2xl">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
-                {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-8"><div className="w-36 h-36 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[8px] border-white shadow-2xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex-grow flex items-center justify-center`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
+                {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-full bg-zinc-50 flex items-center justify-center text-3xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
+                {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-full bg-zinc-50 flex items-center justify-center text-3xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-12 bg-white border-t border-zinc-100 pt-6 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
-              {view === 'wordle-game' && !isWordleLoading && <div className="fixed bottom-0 left-0 right-0 p-4 pb-12 bg-white border-t border-zinc-100 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
-              {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65] ios-bottom-bar"><ColordleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
-              {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65] ios-bottom-bar"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
+              <div className="flex-shrink-0 w-full">
+                {view === 'sudoku-game' && <footer className="px-4 pb-8 bg-white border-t border-zinc-100 pt-6 ios-bottom-bar shadow-[0_-15px_30px_rgba(0,0,0,0.02)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
+                {view === 'wordle-game' && !isWordleLoading && <div className="pb-10 bg-white border-t border-zinc-100 pt-4 ios-bottom-bar shadow-[0_-15px_30px_rgba(0,0,0,0.02)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+                {view === 'colordle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-[0_-15px_30px_rgba(0,0,0,0.02)]"><ColordleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
+                {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-[0_-15px_30px_rgba(0,0,0,0.02)]"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
+              </div>
 
               {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView('hub'); setActiveGameType(null); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} />}
             </div>

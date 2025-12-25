@@ -12,13 +12,14 @@ interface WordleKeyboardProps {
 }
 
 const ROW_1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
-const ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'DELETE'];
-const ROW_3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER'];
+const ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+const ROW_3 = ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DELETE'];
 
 const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelete, keyStatus, validating }) => {
-  const renderKey = (key: string, isControl: boolean = false) => {
+  const renderKey = (key: string) => {
     let colorClasses = '';
     const status = keyStatus[key];
+    const isControl = key === 'ENTER' || key === 'DELETE';
 
     if (isControl) {
       colorClasses = 'bg-zinc-200 text-zinc-900 border-zinc-300 active:bg-zinc-900 active:text-white shadow-sm';
@@ -44,18 +45,17 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
         disabled={validating && isEnter}
         onClick={handleClick}
         className={`
-          flex-grow h-[72px] sm:h-20 flex items-center justify-center rounded-2xl font-black transition-all active:scale-95 border
-          ${isDelete || isEnter ? 'px-3 min-w-[64px] sm:min-w-[100px]' : 'min-w-[32px] sm:min-w-[48px] text-[15px] sm:text-lg'}
-          ${isEnter ? 'text-[10px] sm:text-[12px] tracking-widest' : ''}
+          flex-1 h-[78px] sm:h-20 flex items-center justify-center rounded-xl font-black transition-all active:scale-95 border
+          ${isDelete || isEnter ? 'flex-[1.5] text-[10px] sm:text-[12px] tracking-widest' : 'text-[16px] sm:text-lg'}
           ${colorClasses}
           ${validating && isEnter ? 'opacity-50' : ''}
         `}
       >
         {isDelete ? (
-          <BackspaceIcon className="w-7 h-7" />
+          <BackspaceIcon className="w-6 h-6" />
         ) : isEnter ? (
           validating ? (
-            <div className="w-6 h-6 border-3 border-zinc-400 border-t-zinc-900 rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-zinc-400 border-t-zinc-900 rounded-full animate-spin"></div>
           ) : (
             'ENTER'
           )
@@ -65,15 +65,15 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-lg mx-auto px-1.5 select-none pb-safe">
+    <div className="flex flex-col gap-2 w-full max-w-lg mx-auto px-1 select-none">
       <div className="flex gap-1.5 justify-center w-full">
         {ROW_1.map(k => renderKey(k))}
       </div>
-      <div className="flex gap-1.5 justify-center w-full">
-        {ROW_2.map(k => renderKey(k, k === 'DELETE'))}
+      <div className="flex gap-1.5 justify-center w-[92%] mx-auto">
+        {ROW_2.map(k => renderKey(k))}
       </div>
       <div className="flex gap-1.5 justify-center w-full">
-        {ROW_3.map(k => renderKey(k, k === 'ENTER'))}
+        {ROW_3.map(k => renderKey(k))}
       </div>
     </div>
   );
