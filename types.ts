@@ -65,7 +65,7 @@ export interface CompletedGame {
   puzzle: Grid | string; 
   solution: Grid | string;
   moves: Move[];
-  explanation?: string; // New field for Wordle definitions or general insights
+  explanation?: string; 
 }
 
 export interface InProgressGame {
@@ -78,34 +78,6 @@ export interface InProgressGame {
   boardState: BoardState | string[] | ColordleMove[] | GeodleMove[];
   elapsedTime: number;
   moves: Move[];
-}
-
-// --- Stats ---
-export interface WordleStats {
-  gamesPlayed: number;
-  gamesWon: number;
-  currentStreak: number;
-  maxStreak: number;
-  guessDistribution: Record<number, number>;
-}
-
-export interface SudokuStats {
-  gamesPlayed: number;
-  gamesWon: number;
-  bestTimes: Record<Difficulty, number | null>;
-  totalSolveTime: number;
-}
-
-export interface ColordleStats {
-  gamesPlayed: number;
-  gamesWon: number;
-  bestMatch: number;
-}
-
-export interface GeodleStats {
-  gamesPlayed: number;
-  gamesWon: number;
-  bestDistance: number;
 }
 
 // --- Settings ---
