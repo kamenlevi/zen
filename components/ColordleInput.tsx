@@ -37,6 +37,11 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
     setValue('');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent global app keys from firing when we're typing
+    e.stopPropagation();
+  };
+
   return (
     <div className="w-full bg-white/98 backdrop-blur-3xl border-t border-zinc-200 p-4 pb-8 sm:p-6 sm:pb-10 rounded-t-[2.5rem] shadow-[0_-15px_40px_rgba(0,0,0,0.08)] flex flex-col items-center gap-4">
       
@@ -58,6 +63,7 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Name the color..."
             className={`w-full bg-zinc-50 border-2 px-6 py-4 rounded-full text-base font-bold tracking-tight outline-none transition-all placeholder:text-zinc-400 text-black shadow-inner
               ${hasError ? 'border-red-500 bg-red-50/50' : 'border-transparent focus:border-black focus:bg-white'}

@@ -348,9 +348,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // If we are in an input, don't trigger game shortcuts
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+      const activeEl = document.activeElement;
+      if (activeEl?.tagName === 'INPUT' || activeEl?.tagName === 'TEXTAREA') {
         if (e.key === 'Escape') {
-          (document.activeElement as HTMLElement).blur();
+          (activeEl as HTMLElement).blur();
+        }
+        // Important: Stop propagation for game-related keys to prevent cross-view glitching
+        if (e.key >= '0' && e.key <= '9') {
+          return;
         }
         return;
       }
@@ -411,19 +416,23 @@ const App: React.FC = () => {
     setDifficulty(l); setActiveGameType('sudoku'); setInitialPuzzle(puzzle); setSolution(solution); 
     setBoardState(puzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 })))); resetGameState('sudoku-game'); 
   };
+  
   const startWordle = async (l: Difficulty) => { 
+    // Optimization: Show view immediately so user doesn't wait on menu
     setDifficulty(l); 
     setActiveGameType('wordle'); 
+    resetGameState('wordle-game'); 
     setIsWordleLoading(true);
     setView('wordle-game');
+    
     try {
       const word = await generateDynamicWord(l);
       setTargetWord(word);
     } finally {
       setIsWordleLoading(false);
     }
-    resetGameState('wordle-game'); 
   };
+
   const startColordle = (l: Difficulty) => { const c = getRandomNicheColor(l); setDifficulty(l); setActiveGameType('colordle'); setTargetColor(c.hex); setTargetColorName(c.name); resetGameState('colordle-game'); };
   const startGeodle = (l: Difficulty) => { const c = getRandomCountry(l); setDifficulty(l); setActiveGameType('geodle'); setTargetCountry(c); resetGameState('geodle-game'); };
 

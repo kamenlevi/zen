@@ -23,10 +23,10 @@ export async function generateDynamicWord(difficulty: Difficulty): Promise<strin
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Generate one single, valid, common 5-letter English word for a Wordle game.
+      contents: `Generate one single, valid, real 5-letter English word for a Wordle game.
       Difficulty: ${difficulty}. 
-      Easy means words everyone knows. Master means very rare/obscure but still in a standard dictionary.
-      Return ONLY the word in uppercase.`,
+      Easy = very common. Master = very rare/advanced but still in a real dictionary.
+      Respond with ONLY the word in uppercase.`,
     });
     const word = response.text?.trim().toUpperCase();
     if (word && word.length === 5 && /^[A-Z]+$/.test(word)) {
@@ -40,7 +40,7 @@ export async function generateDynamicWord(difficulty: Difficulty): Promise<strin
 }
 
 /**
- * Validates a word using the Gemini API with a high thinking budget for dictionary accuracy.
+ * Validates a word with strict dictionary enforcement using Gemini.
  */
 export async function isValidWord(word: string): Promise<boolean> {
   const w = word.trim().toUpperCase();
@@ -52,18 +52,17 @@ export async function isValidWord(word: string): Promise<boolean> {
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Linguistic Audit: Is the 5-letter string "${w}" a real, correctly spelled English word found in standard dictionaries like Oxford or Merriam-Webster?
+      model: 'gemini-3-flash-preview',
+      contents: `Linguistic Audit: Is the 5-letter string "${w}" a real, correctly spelled English word?
       
-      STRICT REJECTION CRITERIA:
-      1. Reject common typos (e.g., 'babie' is a typo of 'baby' and is INVALID).
-      2. Reject non-words/keyboard mashes (e.g., 'asdfg').
-      3. Reject proper nouns unless they are also common words.
-      4. Reject pluralizations that are not standard (e.g., 'doggy' vs 'doggi').
+      STRICT REJECTION RULES:
+      - Reject TYPOS (e.g., 'babie' is a typo of 'baby' and is INVALID).
+      - Reject keyboard mashes (e.g., 'asdfg').
+      - Reject fake words that just sound real.
+      - Reject slang not found in standard dictionaries.
 
       Respond ONLY with "VALID" or "INVALID".`,
       config: { 
-        thinkingConfig: { thinkingBudget: 4096 },
         temperature: 0 
       }
     });
@@ -72,10 +71,9 @@ export async function isValidWord(word: string): Promise<boolean> {
     return result === 'VALID';
   } catch (e) {
     console.error("Validation API error:", e);
-    // On error, we fallback to a simple vowel check to at least reject obvious junk
-    const hasVowel = /[AEIOUY]/.test(w);
-    const noRepeatedJunk = !/(.)\1{3,}/.test(w); // No 4x repeated letters
-    return hasVowel && noRepeatedJunk;
+    // On error, default to false to prevent non-words from slipping through.
+    // We only allow if it's in our tiny internal difficulty list as a fallback.
+    return Object.values(WORDS_BY_DIFFICULTY).some(list => list.includes(w));
   }
 }
 
