@@ -14,7 +14,7 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
   const rows = Array.from({ length: maxGuesses });
 
   return (
-    <div className="flex flex-col gap-1.5 sm:gap-2 w-full items-center px-4 overflow-x-hidden no-scrollbar py-2 flex-shrink transition-all">
+    <div className="flex flex-col gap-1.5 sm:gap-2 w-full items-center px-4 overflow-x-hidden no-scrollbar py-4 flex-shrink transition-all animate-fade-in">
       {rows.map((_, i) => {
         const guess = guesses[i] || (i === guesses.length ? currentGuess : '');
         const result = results[i];
@@ -46,9 +46,9 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
                 <div
                   key={j}
                   className={`
-                    w-[min(12vw,54px)] h-[min(12vw,54px)] sm:w-[76px] sm:h-[76px]
+                    w-[min(14vw,62px)] h-[min(14vw,62px)] sm:w-[76px] sm:h-[76px]
                     flex-shrink flex items-center justify-center 
-                    text-lg sm:text-4xl font-black uppercase rounded-none border-2 transition-all duration-300
+                    text-xl sm:text-4xl font-black uppercase rounded-none border-2 transition-all duration-300
                     ${bgColor} ${textColor}
                     ${!char && !result ? 'opacity-30' : ''}
                   `}
