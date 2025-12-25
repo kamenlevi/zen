@@ -116,7 +116,9 @@ const App: React.FC = () => {
   }, [activeGameType, difficulty, startTime, initialPuzzle, targetWord, targetColor, targetCountry, solution]);
 
   const fetchWordExplanation = async (word: string) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || apiKey === 'undefined') return "";
+    const ai = new GoogleGenAI({ apiKey });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -187,60 +189,64 @@ const App: React.FC = () => {
     if (!initialPuzzle || isWon || isLost) return;
     setUndoStack([]); setRedoStack([]);
     setBoardState(initialPuzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 }))));
-    setMoveHistory(prev => [...prev, { type: 'reset' as any, timestamp: Date.now() }]);
+    // Fix: Cast the reset object to Move to satisfy TypeScript union requirements
+    setMoveHistory(prev => [...prev, { type: 'reset' as any, timestamp: Date.now() } as Move]);
     setSelectedCell(null); setHighlightedValue(null);
   }, [initialPuzzle, isWon, isLost]);
 
   const handleWordleSubmit = useCallback(async () => {
     if (currentGuess.length !== 5 || isPaused || isWon || isLost || isWordleValidating) return;
     
-    // Lock the input immediately to prevent double-submit or UI jitter
+    const wordToSubmit = currentGuess.toUpperCase();
     setIsWordleValidating(true);
     
-    const valid = await isValidWord(currentGuess);
-    if (!valid) { 
+    try {
+      const valid = await isValidWord(wordToSubmit);
+      if (!valid) { 
+        setIsWordleValidating(false);
+        setWordleShakeTrigger(p => p + 1); 
+        return; 
+      }
+      
+      const feedback = getWordFeedback(wordToSubmit, targetWord);
+      
+      // Update results and guesses together to ensure consistency
+      setWordleResults(prev => [...prev, feedback]);
+      setGuesses(prev => [...prev, wordToSubmit]);
+      
+      // Update keyboard states
+      setKeyStatus(prev => {
+        const next = { ...prev };
+        feedback.forEach((s, idx) => {
+          const char = wordToSubmit[idx];
+          if (s === 'correct' || (s === 'present' && next[char] !== 'correct')) next[char] = s;
+          else if (!next[char]) next[char] = s;
+        });
+        return next;
+      });
+      
+      const newMove: WordleMove = { type: 'wordle-guess', word: wordToSubmit, timestamp: Date.now() };
+      setMoveHistory(prev => [...prev, newMove]);
+      
+      // Check win/loss conditions
+      const win = wordToSubmit === targetWord;
+      const loss = !win && (guesses.length + 1) >= MAX_WORDLE_GUESSES;
+      
+      setCurrentGuess('');
+      
+      if (win || loss) {
+        // Only fetch explanation if game actually ends
+        const explanation = await fetchWordExplanation(targetWord);
+        setIsWordleValidating(false);
+        setTimeout(() => handleGameOver(win, [...moveHistory, newMove], explanation), 1000);
+      } else {
+        setIsWordleValidating(false);
+      }
+    } catch (err) {
+      console.error("Wordle submit error:", err);
       setIsWordleValidating(false);
-      setWordleShakeTrigger(p => p + 1); 
-      return; 
     }
-    
-    const feedback = getWordFeedback(currentGuess, targetWord);
-    const newResults = [...wordleResults, feedback];
-    const newGuesses = [...guesses, currentGuess];
-    
-    // Apply board updates immediately
-    setWordleResults(newResults);
-    setGuesses(newGuesses);
-    
-    const newKeys = { ...keyStatus };
-    feedback.forEach((s, idx) => {
-      const char = currentGuess[idx];
-      if (s === 'correct' || (s === 'present' && newKeys[char] !== 'correct')) newKeys[char] = s;
-      else if (!newKeys[char]) newKeys[char] = s;
-    });
-    setKeyStatus(newKeys);
-    
-    const newMove: WordleMove = { type: 'wordle-guess', word: currentGuess, timestamp: Date.now() };
-    const nextHistory = [...moveHistory, newMove];
-    setMoveHistory(nextHistory);
-    
-    const win = currentGuess === targetWord;
-    const loss = !win && newGuesses.length >= MAX_WORDLE_GUESSES;
-    
-    // CLEAR THE INPUT NOW - before any async AI calls
-    // This prevents the word from appearing on the next row while waiting for Gemini
-    setCurrentGuess('');
-    
-    if (win || loss) {
-      // Game is over. Start fetching explanation while showing board
-      const explanation = await fetchWordExplanation(targetWord);
-      setIsWordleValidating(false);
-      setTimeout(() => handleGameOver(win, nextHistory, explanation), 800);
-    } else {
-      // Just a normal guess, unlock input
-      setIsWordleValidating(false);
-    }
-  }, [currentGuess, targetWord, wordleResults, guesses, isPaused, isWon, isLost, keyStatus, moveHistory, handleGameOver, isWordleValidating]);
+  }, [currentGuess, targetWord, guesses, moveHistory, isPaused, isWon, isLost, isWordleValidating, handleGameOver]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
