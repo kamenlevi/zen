@@ -385,12 +385,29 @@ const App: React.FC = () => {
     <div className="app-container relative bg-zinc-50 overflow-hidden font-sans safe-pt safe-pb">
       {/* Background Hub visible during swipe */}
       <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8">
-        <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-20 drop-shadow-sm">ZEN</h1>
+        <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-12 drop-shadow-sm">ZEN</h1>
         <div className="w-full max-w-xs space-y-4">
           <HubButton type="sudoku" />
           <HubButton type="wordle" />
           <HubButton type="colordle" />
           <HubButton type="geodle" />
+          
+          <div className="flex gap-3 pt-4">
+            <button 
+              onClick={() => { setView('history'); }} 
+              className="flex-1 py-5 rounded-3xl bg-zinc-50 border border-zinc-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm group"
+            >
+              <ClockIcon className="w-4 h-4 text-black" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-black">History</span>
+            </button>
+            <button 
+              onClick={() => { setView('settings'); }} 
+              className="flex-1 py-5 rounded-3xl bg-zinc-50 border border-zinc-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm group"
+            >
+              <SettingsIcon className="w-4 h-4 text-black" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-black">Settings</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -461,7 +478,7 @@ const App: React.FC = () => {
                 </button>
               </header>
 
-              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-4">
+              <main className={`flex-grow flex flex-col items-center ${view === 'wordle-game' ? 'justify-end pb-8' : 'justify-center'} relative overflow-hidden py-4`}>
                 {isWordleLoading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/95 backdrop-blur-md">
                     <div className="w-10 h-10 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-4"></div>
@@ -469,7 +486,7 @@ const App: React.FC = () => {
                   </div>
                 )}
                 {view === 'sudoku-game' && boardState && <div className="w-full scale-[1.05] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
-                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex-grow flex items-center justify-center`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex flex-col items-center justify-center`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
                 {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-full bg-zinc-50 flex items-center justify-center text-3xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-full bg-zinc-50 flex items-center justify-center text-3xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
