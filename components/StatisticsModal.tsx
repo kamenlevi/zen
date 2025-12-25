@@ -17,15 +17,6 @@ interface StatisticsModalProps {
 
 const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBringToGame }) => {
   const isCompleted = useMemo(() => game && 'endTime' in game, [game]);
-  
-  const attemptLog = useMemo(() => {
-    if (!game) return [];
-    if (game.gameType === 'wordle') return game.moves.filter(m => m.type === 'wordle-guess') as WordleMove[];
-    if (game.gameType === 'colordle') return game.moves.filter(m => m.type === 'color-guess') as any[];
-    if (game.gameType === 'geodle') return game.moves.filter(m => m.type === 'geo-guess') as any[];
-    return [];
-  }, [game]);
-
   if (!game) return null;
 
   const startTime = game.startTime;
@@ -41,7 +32,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
       case 'wordle':
         return (
           <MiniWordleBoard 
-            results={attemptLog.map(m => getWordFeedback((m as WordleMove).word, targetSolution))} 
+            results={moves.map(m => getWordFeedback((m as WordleMove).word, targetSolution))} 
             wordLength={5} 
           />
         );
@@ -65,6 +56,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
         </header>
 
         <div className="flex flex-col gap-10">
+          {/* Top Section: Board Left, Stats Right */}
           <div className="flex flex-col md:flex-row gap-8">
             <div className="w-full md:w-1/2 aspect-square max-w-[280px] mx-auto md:mx-0">
               {renderMiniPreview()}
@@ -77,14 +69,16 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
                   <p className="text-xl font-black tabular-nums">{formatTime(elapsedTime)}</p>
                 </div>
                 <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Guesses</p>
-                  <p className="text-xl font-black">{attemptLog.length || (game.gameType === 'sudoku' ? moves.filter(m => m.type === 'cell').length : 0)}</p>
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Difficulty</p>
+                  <p className="text-xl font-black">{game.difficulty}</p>
                 </div>
               </div>
 
               <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
-                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Difficulty</p>
-                <p className="text-xl font-black">{game.difficulty}</p>
+                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
+                <p className={`text-xl font-black uppercase ${isCompleted ? 'text-emerald-600' : 'text-amber-500'}`}>
+                  {isCompleted ? 'Solved' : 'In Progress'}
+                </p>
               </div>
 
               {explanation && (
@@ -96,25 +90,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
             </div>
           </div>
 
-          {attemptLog.length > 0 && (
-            <div className="pt-8 border-t border-zinc-100">
-              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-4">Attempt Log</h3>
-              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto no-scrollbar px-1">
-                {attemptLog.map((attempt, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-3 px-6 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-300 transition-colors">
-                    <span className="text-[10px] font-black text-zinc-300 tabular-nums">#0{idx + 1}</span>
-                    <span className="text-[14px] font-black tracking-widest text-zinc-900 uppercase">
-                      {game.gameType === 'wordle' ? (attempt as WordleMove).word : (attempt as any).guessName}
-                    </span>
-                    <span className="text-[10px] font-bold text-zinc-400 tabular-nums">
-                      {game.gameType === 'wordle' ? '' : `${Math.round((attempt as any).percentage)}%`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
+          {/* Bottom Section: Move History / Timelapse */}
           <div className="pt-10 border-t border-zinc-100">
             <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-8 text-center">Solution Timelapse</h3>
             <TimelapsePlayer 
@@ -127,6 +103,11 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
         </div>
 
         <div className="mt-12 flex flex-col gap-4">
+          {onBringToGame && !isCompleted && (
+            <button onClick={onBringToGame} className="w-full bg-black text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">
+              Resume Journey
+            </button>
+          )}
           <button onClick={onClose} className="w-full bg-black text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">
             Back to History
           </button>

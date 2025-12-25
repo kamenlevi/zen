@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Difficulty, BoardState, Grid, Move, CompletedGame, InProgressGame, WordleStatus,
-  ColordleMove, WordleMove, WordleInputMove, GeodleMove, GameSettings
+  ColordleMove, WordleMove, GeodleMove, GameSettings
 } from './types.ts';
 import { GoogleGenAI } from "@google/genai";
 import { generateSudoku } from './services/sudokuService.ts';
@@ -238,21 +238,27 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Stats/History detail open? Close it.
         if (selectedHistoryGame) { 
           setSelectedHistoryGame(null); 
           return; 
         }
+
+        // Active game view?
         if (view.includes('-game')) {
+          // If finished, Esc goes back to hub
           if (isWon || isLost) {
             setView('hub');
             setIsPaused(false);
             setActiveGameType(null);
             return;
           }
-          // Correct toggle behavior for Escape key
+          // Otherwise toggle pause menu
           setIsPaused(prev => !prev);
           return;
         }
+
+        // Game menu or secondary screen open? Go to Hub.
         if (view !== 'hub') {
           setView('hub');
           setIsPaused(false);
@@ -261,6 +267,7 @@ const App: React.FC = () => {
         }
       }
 
+      // Input field bypass
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         if (e.key === 'Enter') {
           const val = (document.activeElement as HTMLInputElement).value;
@@ -275,16 +282,8 @@ const App: React.FC = () => {
         if (e.key >= '1' && e.key <= '9') handleSudokuInput(parseInt(e.key));
         if (e.key === 'Backspace') handleSudokuErase();
       } else if (view === 'wordle-game') {
-        if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) {
-          const next = currentGuess + e.key.toUpperCase();
-          setCurrentGuess(next);
-          setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
-        }
-        if (e.key === 'Backspace') {
-          const next = currentGuess.slice(0, -1);
-          setCurrentGuess(next);
-          setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
-        }
+        if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) setCurrentGuess(p => p + e.key.toUpperCase());
+        if (e.key === 'Backspace') setCurrentGuess(p => p.slice(0, -1));
         if (e.key === 'Enter') handleWordleSubmit();
       }
     };
@@ -318,6 +317,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container relative bg-zinc-100 overflow-hidden font-sans">
+      {/* HUB View */}
       <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 transition-opacity" style={{ opacity: view === 'hub' ? 1 : 0.4 }}>
         <h1 className="text-[min(15vw,100px)] font-black tracking-tighter text-black leading-none mb-12 animate-fade-in">ZEN</h1>
         <div className="w-full max-w-xs space-y-4">
@@ -338,6 +338,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* Main View Layer */}
       {view !== 'hub' && (
         <div className="absolute inset-0 bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.15)] rounded-t-[3.5rem] border-t border-zinc-200 z-50 overflow-y-auto no-scrollbar animate-fade-in">
           {view.includes('-menu') && (
@@ -389,16 +390,9 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6 sm:gap-10"><div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2.5rem] sm:rounded-[3.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] sm:border-[8px] border-zinc-50 shadow-inner"><svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg></div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
+              {/* Input Overlays */}
               {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 sm:pb-10 bg-white border-t border-zinc-100 pt-3 sm:pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
-              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => {
-                const next = currentGuess + k;
-                setCurrentGuess(next);
-                setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
-              }} onDelete={() => {
-                const next = currentGuess.slice(0, -1);
-                setCurrentGuess(next);
-                setMoveHistory(prev => [...prev, { type: 'wordle-input', text: next, timestamp: Date.now() }]);
-              }} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 
@@ -447,6 +441,9 @@ const App: React.FC = () => {
         <StatisticsModal 
           game={selectedHistoryGame} 
           onClose={() => setSelectedHistoryGame(null)} 
+          onBringToGame={() => {
+            setSelectedHistoryGame(null);
+          }}
         />
       )}
     </div>

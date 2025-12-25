@@ -16,14 +16,13 @@ export function generateWordleWord(difficulty: Difficulty): string {
 }
 
 /**
- * Validates a word using the Gemini Pro API for high-quality dictionary verification.
- * Reverts to the "slower but better" Pro model to ensure accuracy.
+ * Validates a word using the Gemini API with a strict JSON schema for high reliability.
  */
 export async function isValidWord(word: string): Promise<boolean> {
   if (!word || word.length !== 5) return false;
   const w = word.toUpperCase();
 
-  // Internal dictionary check for instant verification of level words
+  // Check internal lists first for instant verification
   for (const level of Object.values(WORDS_BY_DIFFICULTY)) {
     if (level.includes(w)) return true;
   }
@@ -31,23 +30,11 @@ export async function isValidWord(word: string): Promise<boolean> {
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === 'undefined') return true;
 
-  // Use the high-end Pro model for dictionary validation tasks
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `ACT AS AN EXPERT DICTIONARY AND LINGUIST.
-      
-      WORD TO VALIDATE: "${w}"
-      
-      QUESTION: Is this a valid, recognized 5-letter English word found in standard comprehensive dictionaries (like Merriam-Webster or Oxford)?
-      
-      RESPONSE RULES:
-      1. You must be accurate. Slang that isn't in a dictionary is invalid.
-      2. Obscure words found in Scrabble dictionaries are valid.
-      3. Acronyms or names are invalid unless they have become common nouns.
-      
-      JSON FORMAT ONLY: {"isValid": boolean, "reason": "string"}`,
+      model: 'gemini-3-flash-preview',
+      contents: `Is "${w}" a valid English word found in standard dictionaries? It must be a 5-letter word.`,
       config: { 
         responseMimeType: "application/json",
         responseSchema: {
@@ -55,11 +42,7 @@ export async function isValidWord(word: string): Promise<boolean> {
           properties: {
             isValid: {
               type: Type.BOOLEAN,
-              description: "True if the word is found in a standard English dictionary."
-            },
-            reason: {
-              type: Type.STRING,
-              description: "A short reason why the word is or is not valid."
+              description: "Whether the word is a valid English word."
             }
           },
           required: ["isValid"]
@@ -70,8 +53,9 @@ export async function isValidWord(word: string): Promise<boolean> {
     const result = JSON.parse(response.text || '{"isValid": true}');
     return result.isValid;
   } catch (e) {
-    console.error("Word validation Pro API error:", e);
-    // Fallback to true to allow gameplay if the service is down
+    console.error("Word validation API error:", e);
+    // If API fails, we fallback to true to prevent blocking users, 
+    // but the schema approach makes failure much less likely.
     return true; 
   }
 }
