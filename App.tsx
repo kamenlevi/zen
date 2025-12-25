@@ -114,14 +114,12 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Save settings when they change
   const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     localStorage.setItem('zen_settings', JSON.stringify(updated));
   };
 
-  // Persistence: Save Progress in Real-time (including when paused)
   useEffect(() => {
     if (view.includes('-game') && activeGameType && !isWon && !isLost) {
       const progress: InProgressGame = {
@@ -182,7 +180,6 @@ const App: React.FC = () => {
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
     
-    // Push current state to undo stack before change
     setUndoStack(prev => [...prev, boardState.map(r => r.map(c => ({...c})))]);
     setRedoStack([]);
 
@@ -318,7 +315,10 @@ const App: React.FC = () => {
     setIsGeoLoading(true);
     try {
       const result = await validateAndGetLocation(guess, targetCountry);
-      if (!result.isValid) return;
+      if (!result.isValid) {
+        setIsGeoLoading(false);
+        return;
+      }
       const newMove: GeodleMove = {
         type: 'geo-guess',
         guessName: result.canonicalName,
@@ -347,19 +347,39 @@ const App: React.FC = () => {
   // Global Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // If we are in an input, don't trigger game shortcuts
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape') {
+          (document.activeElement as HTMLElement).blur();
+        }
+        return;
+      }
+
       if (e.key === 'Escape') {
         if (selectedHistoryGame) { setSelectedHistoryGame(null); return; }
         if (view.includes('-game')) {
-          if (isWon || isLost) { setView('hub'); setIsPaused(false); setActiveGameType(null); return; }
-          setIsPaused(prev => !prev); return;
+          if (isWon || isLost) { 
+            setView('hub'); 
+            setIsPaused(false); 
+            setActiveGameType(null); 
+            return; 
+          }
+          setIsPaused(prev => !prev); 
+          return;
         }
-        if (view !== 'hub') { setView('hub'); setIsPaused(false); setActiveGameType(null); return; }
+        if (view !== 'hub') { 
+          setView('hub'); 
+          setIsPaused(false); 
+          setActiveGameType(null); 
+          return; 
+        }
       }
-      if (document.activeElement?.tagName === 'INPUT') return;
+
       if (isPaused || isWon || isLost || isWordleValidating) return;
+      
       if (view === 'sudoku-game') {
         if (e.key >= '1' && e.key <= '9') handleSudokuInput(parseInt(e.key));
-        if (e.key === 'Backspace') handleSudokuErase();
+        if (e.key === 'Backspace' || e.key === 'Delete') handleSudokuErase();
       } else if (view === 'wordle-game') {
         if (/^[a-zA-Z]$/.test(e.key) && currentGuess.length < 5) setCurrentGuess(p => p + e.key.toUpperCase());
         if (e.key === 'Backspace') setCurrentGuess(p => p.slice(0, -1));
@@ -392,9 +412,16 @@ const App: React.FC = () => {
     setBoardState(puzzle.map(r => r.map(v => ({ value: v, readonly: v !== 0 })))); resetGameState('sudoku-game'); 
   };
   const startWordle = async (l: Difficulty) => { 
-    setDifficulty(l); setActiveGameType('wordle'); setIsWordleLoading(true);
-    const word = await generateDynamicWord(l);
-    setTargetWord(word); setIsWordleLoading(false);
+    setDifficulty(l); 
+    setActiveGameType('wordle'); 
+    setIsWordleLoading(true);
+    setView('wordle-game');
+    try {
+      const word = await generateDynamicWord(l);
+      setTargetWord(word);
+    } finally {
+      setIsWordleLoading(false);
+    }
     resetGameState('wordle-game'); 
   };
   const startColordle = (l: Difficulty) => { const c = getRandomNicheColor(l); setDifficulty(l); setActiveGameType('colordle'); setTargetColor(c.hex); setTargetColorName(c.name); resetGameState('colordle-game'); };
@@ -473,13 +500,13 @@ const App: React.FC = () => {
                   </div>
                 )}
                 {view === 'sudoku-game' && boardState && <Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} />}
-                {view === 'wordle-game' && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
                 {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] border-zinc-50 shadow-inner">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] border-zinc-50 shadow-inner">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
               {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 bg-white border-t border-zinc-100 pt-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} onUndo={handleUndo} onRedo={handleRedo} onReset={handleReset} show={!!selectedCell} canUndo={undoStack.length > 0} canRedo={redoStack.length > 0} /></footer>}
-              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+              {view === 'wordle-game' && !isWordleLoading && <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 

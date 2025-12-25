@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SparkleIcon } from './icons.tsx';
 
@@ -30,16 +29,6 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
       return () => clearTimeout(timer);
     }
   }, [hasError]);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (/^[a-zA-Z]$/.test(e.key) && document.activeElement !== inputRef.current) {
-        inputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +63,9 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
               ${hasError ? 'border-red-500 bg-red-50/50' : 'border-transparent focus:border-black focus:bg-white'}
             `}
             disabled={isLoading || isHintLoading}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
           />
           {isLoading && (
             <div className="absolute right-6 top-1/2 -translate-y-1/2">
