@@ -74,7 +74,8 @@ export async function isValidWord(word: string): Promise<boolean> {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Perform a strict linguistic dictionary check. Is the 5-letter string "${w}" a valid, real English word found in standard dictionaries? 
-      Strict guidelines: 
+      Strict guidelines:
+      - Reject abbreviation. 
       - Reject slang unless widely accepted.
       - Reject common typos (e.g., 'babie' is a typo of 'baby' and should be INVALID).
       - Reject keyboard mashes (e.g., 'fmodj').
