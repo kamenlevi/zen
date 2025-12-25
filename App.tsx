@@ -104,6 +104,11 @@ const App: React.FC = () => {
   
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<CompletedGame | InProgressGame | null>(null);
 
+  // --- Gesture Support ---
+  const [swipeY, setSwipeY] = useState(0);
+  const touchStartY = useRef<number | null>(null);
+  const isSwiping = useRef(false);
+
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
     if (saved) { try { setSettings(JSON.parse(saved)); } catch (e) {} }
@@ -141,9 +146,8 @@ const App: React.FC = () => {
     const { row, col } = selectedCell;
     if (boardState[row][col].readonly) return;
     
-    // Push current state to history for undo
     setSudokuHistory(prev => [...prev, boardState.map(r => r.map(c => ({ ...c })))]);
-    setSudokuRedoStack([]); // Clear redo stack on new input
+    setSudokuRedoStack([]);
 
     const newBoard = boardState.map(r => r.map(c => ({ ...c })));
     newBoard[row][col].value = num;
@@ -151,7 +155,6 @@ const App: React.FC = () => {
     setBoardState(newBoard);
     setHighlightedValue(num);
     
-    // Deselect cell after input
     setSelectedCell(null);
 
     const nextHistory = [...moveHistory, { type: 'cell', row, col, value: num, timestamp: Date.now() } as Move];
@@ -289,6 +292,32 @@ const App: React.FC = () => {
     }
   }, [view, isPaused, activeGameType, selectedHistoryGame]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (view === 'hub' || isPaused || isWon || isLost) return;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartY.current;
+    
+    // Only swipe down, and only if we are at the top of a scrollable area (conceptually)
+    if (deltaY > 0) {
+      setSwipeY(deltaY);
+      isSwiping.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeY > 180) {
+      handleBack();
+    }
+    setSwipeY(0);
+    touchStartY.current = null;
+    isSwiping.current = false;
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -353,35 +382,30 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="app-container relative bg-white overflow-hidden font-sans safe-pt safe-pb">
-      {view === 'hub' && (
-        <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 animate-fade-in">
-          <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-20 drop-shadow-sm">ZEN</h1>
-          <div className="w-full max-w-xs space-y-4">
-            <HubButton type="sudoku" />
-            <HubButton type="wordle" />
-            <HubButton type="colordle" />
-            <HubButton type="geodle" />
-          </div>
-          <div className="mt-20 flex gap-12">
-            <button onClick={() => setView('history')} className="flex flex-col items-center gap-3 group">
-              <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-100 group-active:scale-90 transition-transform shadow-sm">
-                <ClockIcon className="w-6 h-6 text-black" />
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black">History</span>
-            </button>
-            <button onClick={() => setView('settings')} className="flex flex-col items-center gap-3 group">
-              <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-100 group-active:scale-90 transition-transform shadow-sm">
-                <SettingsIcon className="w-6 h-6 text-black" />
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black">Settings</span>
-            </button>
-          </div>
+    <div className="app-container relative bg-zinc-50 overflow-hidden font-sans safe-pt safe-pb">
+      {/* Background Hub visible during swipe */}
+      <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8">
+        <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-20 drop-shadow-sm">ZEN</h1>
+        <div className="w-full max-w-xs space-y-4">
+          <HubButton type="sudoku" />
+          <HubButton type="wordle" />
+          <HubButton type="colordle" />
+          <HubButton type="geodle" />
         </div>
-      )}
+      </div>
 
       {view !== 'hub' && (
-        <div className="absolute inset-0 bg-white shadow-2xl z-50 overflow-y-auto no-scrollbar animate-fade-in flex flex-col">
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ 
+            transform: `translateY(${swipeY}px)`,
+            transition: swipeY === 0 ? 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
+            borderRadius: swipeY > 0 ? '40px' : '0px'
+          }}
+          className="absolute inset-0 bg-white shadow-2xl z-50 overflow-y-auto no-scrollbar animate-fade-in flex flex-col"
+        >
           {view.includes('-menu') && (
             <div className="h-full flex flex-col items-center justify-center relative p-8">
               <div className="w-full max-w-xs flex flex-col items-center text-center animate-fade-in">
@@ -416,20 +440,20 @@ const App: React.FC = () => {
 
           {view.includes('-game') && (
             <div className="h-full flex flex-col relative">
-              <header className="px-5 py-4 mt-2 flex items-center justify-between flex-shrink-0 z-[70]">
+              <header className="px-5 py-6 mt-2 flex items-center justify-between flex-shrink-0 z-[70]">
                 <button onClick={handleBack} className="w-14 h-14 bg-black rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl">
                   <ChevronLeftIcon className="w-6 h-6 text-white" />
                 </button>
                 <div className="flex flex-col items-center">
-                  <h2 className="text-3xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
-                  <div className="flex items-center space-x-2 mt-1.5">
-                    <span className="text-[7px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
+                  <h2 className="text-4xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <span className="text-[11px] sm:text-[13px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
                     {settings.sudoku.timerVisible && (
                       <>
                         <span className="text-zinc-200">|</span>
                         <div className="flex items-center space-x-1 text-zinc-900">
-                          <ClockIcon className="w-2.5 h-2.5 text-black" />
-                          <span className="text-[13px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span>
+                          <ClockIcon className="w-3 h-3 text-black" />
+                          <span className="text-[15px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span>
                         </div>
                       </>
                     )}
@@ -447,14 +471,14 @@ const App: React.FC = () => {
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">Loading Session</p>
                   </div>
                 )}
-                {view === 'sudoku-game' && boardState && <Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} />}
-                {view === 'wordle-game' && !isWordleLoading && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
+                {view === 'sudoku-game' && boardState && <div className="w-full scale-[1.05] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} scale-[1.1] sm:scale-100`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
                 {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-8"><div className="w-36 h-36 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[8px] border-white shadow-2xl">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-8"><div className="w-36 h-36 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[8px] border-white shadow-2xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-10 bg-white border-t border-zinc-100 pt-5 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
-              {view === 'wordle-game' && !isWordleLoading && <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-zinc-100 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-12 bg-white border-t border-zinc-100 pt-6 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
+              {view === 'wordle-game' && !isWordleLoading && <div className="fixed bottom-0 left-0 right-0 p-4 pb-12 bg-white border-t border-zinc-100 ios-bottom-bar shadow-[0_-20px_40px_rgba(0,0,0,0.03)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65] ios-bottom-bar"><ColordleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65] ios-bottom-bar"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 
