@@ -61,23 +61,6 @@ export type GeodleMove = {
 
 export type Move = CellMove | WordleMove | WordleInputMove | ColordleMove | GeodleMove;
 
-// --- Settings ---
-// Added GameSettings to resolve missing export error in SettingsScreen.tsx
-export interface GameSettings {
-  global: {
-    animations: boolean;
-  };
-  sudoku: {
-    highlightRelated: boolean;
-    highlightSameValue: boolean;
-    errorFeedback: 'immediate' | 'manual';
-  };
-  wordle: {
-    hardMode: boolean;
-    highContrast: boolean;
-  };
-}
-
 // --- Persistence ---
 export interface CompletedGame {
   id: string;
@@ -101,4 +84,29 @@ export interface InProgressGame {
   boardState: BoardState | string[] | ColordleMove[] | GeodleMove[];
   elapsedTime: number;
   moves: Move[];
+}
+
+// --- Settings ---
+export interface GameSettings {
+  sudoku: {
+    highlightRelated: boolean;
+    highlightSameValue: boolean;
+    errorFeedback: 'immediate' | 'manual';
+  };
+  wordle: {
+    hardMode: boolean;
+    highContrast: boolean;
+  };
+  colordle: {
+    allowHints: boolean;
+    vibrationFeedback: boolean;
+  };
+  geodle: {
+    metricUnits: boolean;
+    showCoordinates: boolean;
+  };
+  global: {
+    animations: boolean;
+    sounds: boolean;
+  };
 }

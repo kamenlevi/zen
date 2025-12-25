@@ -15,11 +15,11 @@ interface StatisticsModalProps {
   onBringToGame?: () => void;
 }
 
-const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBringToGame }) => {
+const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
   const isCompleted = useMemo(() => game && 'endTime' in game, [game]);
   
   const attemptLog = useMemo(() => {
-    if (!game) return [];
+    if (!game || !game.moves) return [];
     if (game.gameType === 'wordle') return game.moves.filter(m => m.type === 'wordle-guess') as WordleMove[];
     if (game.gameType === 'colordle') return game.moves.filter(m => m.type === 'color-guess') as any[];
     if (game.gameType === 'geodle') return game.moves.filter(m => m.type === 'geo-guess') as any[];
@@ -29,16 +29,24 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
   if (!game) return null;
 
   const startTime = game.startTime;
-  const elapsedTime = isCompleted ? Math.floor(((game as CompletedGame).endTime - startTime) / 1000) : (game as InProgressGame).elapsedTime;
+  const elapsedTime = isCompleted 
+    ? Math.floor(((game as CompletedGame).endTime - startTime) / 1000) 
+    : (game as InProgressGame).elapsedTime || 0;
+  
   const moves = game.moves || [];
-  const targetSolution = game.solution as string;
+  const targetSolution = (game.solution || "") as string;
   const explanation = isCompleted ? (game as CompletedGame).explanation : undefined;
 
   const renderMiniPreview = () => {
+    if (!game.gameType) return null;
+
     switch (game.gameType) {
       case 'sudoku':
-        return <MiniBoard board={isCompleted ? (game as CompletedGame).solution as any : (game as InProgressGame).boardState as any} className="w-full h-full" />;
+        const boardToRender = isCompleted ? (game as CompletedGame).solution : (game as InProgressGame).boardState;
+        if (!boardToRender || typeof boardToRender === 'string') return <div className="w-full h-full bg-zinc-50 rounded-2xl flex items-center justify-center text-[10px] font-black uppercase text-zinc-300">No Preview</div>;
+        return <MiniBoard board={boardToRender as any} className="w-full h-full" />;
       case 'wordle':
+        if (!targetSolution) return <div className="w-full h-full bg-zinc-50 rounded-2xl" />;
         return (
           <MiniWordleBoard 
             results={attemptLog.map(m => getWordFeedback((m as WordleMove).word, targetSolution))} 
@@ -48,7 +56,9 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
       case 'colordle':
         return <MiniColordleBoard guesses={moves as any} targetColor={targetSolution} hideTarget={!isCompleted} />;
       case 'geodle':
-        return <MiniGeodleBoard guesses={moves as any} isFailed={isCompleted && moves.length >= 6 && (moves[moves.length-1] as any).percentage < 99} />;
+        const lastMove = moves.length > 0 ? (moves[moves.length - 1] as any) : null;
+        const isFailedGeo = isCompleted && (!lastMove || lastMove.percentage < 99.5);
+        return <MiniGeodleBoard guesses={moves as any} isFailed={isFailedGeo} />;
       default:
         return null;
     }
@@ -107,7 +117,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
                       {game.gameType === 'wordle' ? (attempt as WordleMove).word : (attempt as any).guessName}
                     </span>
                     <span className="text-[10px] font-bold text-zinc-400 tabular-nums">
-                      {game.gameType === 'wordle' ? '' : `${Math.round((attempt as any).percentage)}%`}
+                      {game.gameType === 'wordle' ? '' : `${Math.round((attempt as any).percentage || 0)}%`}
                     </span>
                   </div>
                 ))}
@@ -119,14 +129,14 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
             <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-8 text-center">Solution Timelapse</h3>
             <TimelapsePlayer 
               gameType={game.gameType} 
-              initialState={game.gameType === 'sudoku' ? (game as any).puzzle : ''} 
-              solution={game.solution} 
+              initialState={game.gameType === 'sudoku' ? (game.puzzle as any) : ''} 
+              solution={game.solution as any} 
               moves={moves} 
             />
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4">
+        <div className="mt-12">
           <button onClick={onClose} className="w-full bg-black text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">
             Back to History
           </button>
