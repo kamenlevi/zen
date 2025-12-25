@@ -14,14 +14,14 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
   const rows = Array.from({ length: maxGuesses });
 
   return (
-    <div className="flex flex-col gap-2 w-full items-center">
+    <div className="flex flex-col gap-1 sm:gap-2 w-full items-center px-4 overflow-y-auto no-scrollbar py-2">
       {rows.map((_, i) => {
         const guess = guesses[i] || (i === guesses.length ? currentGuess : '');
         const result = results[i];
         const isCurrent = i === guesses.length;
 
         return (
-          <div key={i} className="flex gap-2 justify-center">
+          <div key={i} className="flex gap-1 sm:gap-2 justify-center">
             {Array.from({ length: wordLength }).map((_, j) => {
               const char = guess[j] || '';
               const status = result ? result[j] : 'tbd';
@@ -30,27 +30,27 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
               let textColor = 'text-black';
 
               if (status === 'correct') {
-                bgColor = 'bg-emerald-600 border-emerald-600 shadow-md';
+                bgColor = 'bg-emerald-600 border-emerald-600';
                 textColor = 'text-white';
               } else if (status === 'present') {
-                bgColor = 'bg-amber-500 border-amber-500 shadow-md';
+                bgColor = 'bg-amber-500 border-amber-500';
                 textColor = 'text-white';
               } else if (status === 'absent') {
-                bgColor = 'bg-zinc-500 border-zinc-500';
+                bgColor = 'bg-zinc-400 border-zinc-400';
                 textColor = 'text-white';
               } else if (isCurrent && char) {
-                bgColor = 'bg-white border-black shadow-md';
+                bgColor = 'bg-white border-zinc-900 scale-105';
               }
 
               return (
                 <div
                   key={j}
                   className={`
-                    w-[68px] h-[68px] sm:w-[72px] sm:h-[72px]
+                    w-[min(14vw,58px)] h-[min(14vw,58px)] sm:w-[68px] sm:h-[68px]
                     flex items-center justify-center 
-                    text-3xl sm:text-4xl font-black uppercase rounded-none border-2 transition-all duration-300
+                    text-xl sm:text-3xl font-black uppercase rounded-lg border-2 transition-all duration-300
                     ${bgColor} ${textColor}
-                    ${char ? 'opacity-100' : 'opacity-40'}
+                    ${!char && !result ? 'border-dashed opacity-50' : ''}
                   `}
                 >
                   {char}

@@ -69,7 +69,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
                   <p className="text-xl font-black tabular-nums">{formatTime(elapsedTime)}</p>
                 </div>
                 <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Prowess</p>
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Difficulty</p>
                   <p className="text-xl font-black">{game.difficulty}</p>
                 </div>
               </div>

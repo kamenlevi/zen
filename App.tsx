@@ -23,7 +23,7 @@ import PauseMenu from './components/PauseMenu.tsx';
 import HistoryScreen from './components/HistoryScreen.tsx';
 import SettingsScreen from './components/SettingsScreen.tsx';
 import StatisticsModal from './components/StatisticsModal.tsx';
-import { ClockIcon, PauseIcon, ChevronLeftIcon } from './components/icons.tsx';
+import { ClockIcon, PauseIcon, ChevronLeftIcon, SettingsIcon } from './components/icons.tsx';
 
 type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history' | 'settings';
 
@@ -237,6 +237,20 @@ const App: React.FC = () => {
   // Global Keyboard listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow Esc to close modals or return to hub
+      if (e.key === 'Escape') {
+        if (selectedHistoryGame) { 
+          setSelectedHistoryGame(null); 
+          return; 
+        }
+        if (view !== 'hub') {
+          setView('hub');
+          setIsPaused(false);
+          setActiveGameType(null);
+          return;
+        }
+      }
+
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         if (e.key === 'Enter') {
           const val = (document.activeElement as HTMLInputElement).value;
@@ -245,14 +259,7 @@ const App: React.FC = () => {
         }
         return;
       }
-      if (e.key === 'Escape') {
-        if (selectedHistoryGame) { setSelectedHistoryGame(null); return; }
-        if (isPaused) { setIsPaused(false); return; }
-        if (isWon || isLost) { setView(`${activeGameType}-menu` as View); return; }
-        if (view.includes('-game')) setIsPaused(true);
-        else if (view === 'hub') return;
-        else setView(activeGameType ? `${activeGameType}-menu` as View : 'hub');
-      }
+
       if (isPaused || isWon || isLost || isWordleValidating) return;
       if (view === 'sudoku-game') {
         if (e.key >= '1' && e.key <= '9') handleSudokuInput(parseInt(e.key));
@@ -308,7 +315,7 @@ const App: React.FC = () => {
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">History</span>
           </button>
           <button onClick={() => { setActiveGameType(null); setView('settings'); }} className="flex flex-col items-center gap-2 group">
-            <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><ClockIcon className="rotate-90" /></div>
+            <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-200 group-active:scale-90 transition-transform"><SettingsIcon className="w-6 h-6 text-zinc-400" /></div>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Settings</span>
           </button>
         </div>
@@ -334,7 +341,7 @@ const App: React.FC = () => {
             <HistoryScreen 
               category={activeGameType || 'sudoku'} 
               setCategory={(c) => setActiveGameType(c)} 
-              onBack={() => setView(activeGameType ? `${activeGameType}-menu` : 'hub')} 
+              onBack={() => setView('hub')} 
               onOpenStats={(g) => setSelectedHistoryGame(g)}
             />
           )}
@@ -344,50 +351,50 @@ const App: React.FC = () => {
               context={activeGameType || 'global'} 
               settings={settings} 
               onSettingsChange={(s) => setSettings(prev => ({ ...prev, ...s }))} 
-              onBack={() => setView(activeGameType ? `${activeGameType}-menu` : 'hub')}
+              onBack={() => setView('hub')}
             />
           )}
 
           {view.includes('-game') && (
             <div className="h-full flex flex-col">
-              <header className="px-8 py-8 mt-4 flex items-center justify-between flex-shrink-0 z-[70]">
-                <button onClick={() => setView(`${activeGameType}-menu` as View)} className="p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><ChevronLeftIcon className="w-6 h-6 text-zinc-400" /></button>
+              <header className="px-5 py-4 sm:px-8 sm:py-6 mt-2 flex items-center justify-between flex-shrink-0 z-[70]">
+                <button onClick={() => setView('hub')} className="p-2 sm:p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400" /></button>
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] uppercase font-black tracking-[0.4em] text-zinc-400 mb-1">{difficulty} • {activeGameType}</span>
-                  <div className="flex items-center space-x-1 text-black"><ClockIcon className="w-3.5 h-3.5" /><span className="text-xl tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>
+                  <span className="text-[8px] sm:text-[9px] uppercase font-black tracking-[0.4em] text-zinc-400 mb-0.5">{difficulty} • {activeGameType}</span>
+                  <div className="flex items-center space-x-1 text-black"><ClockIcon className="w-3 sm:w-3.5 h-3 sm:h-3.5" /><span className="text-lg sm:text-xl tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>
                 </div>
-                <button onClick={() => setIsPaused(p => !p)} className="p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><PauseIcon className="w-6 h-6 text-zinc-900" /></button>
+                <button onClick={() => setIsPaused(p => !p)} className="p-2 sm:p-3 bg-zinc-50 rounded-full border border-zinc-100 active:scale-90 transition-transform"><PauseIcon className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-900" /></button>
               </header>
 
-              <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-44">
+              <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-40 sm:pb-48">
                 {view === 'sudoku-game' && boardState && <Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} />}
                 {view === 'wordle-game' && <div className={wordleShakeTrigger > 0 ? 'animate-shake' : ''}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
-                {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-10"><div className="w-56 h-56 rounded-[4rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[12px] border-zinc-50 shadow-inner">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
-                {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-10"><div className="w-56 h-56 rounded-[4rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[12px] border-zinc-50 shadow-inner"><svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg></div><GeodleBoard guesses={geodleGuesses} /></div>}
+                {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6 sm:gap-10"><div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2.5rem] sm:rounded-[3.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] sm:border-[8px] border-zinc-50 shadow-inner">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
+                {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6 sm:gap-10"><div className="w-32 h-32 sm:w-48 sm:h-48 rounded-[2.5rem] sm:rounded-[3.5rem] bg-zinc-100 flex items-center justify-center text-4xl font-black text-zinc-300 border-[6px] sm:border-[8px] border-zinc-50 shadow-inner"><svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg></div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
-              {/* Input Overlays */}
-              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-8 pb-10 bg-white/95 border-t border-zinc-100 pt-6"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
-              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-zinc-100"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+              {/* Input Overlays - Improved Fixed Bottom Positioning */}
+              {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-4 pb-8 sm:pb-10 bg-white border-t border-zinc-100 pt-3 sm:pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
+              {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white border-t border-zinc-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
               {view === 'colordle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><ColordleInput onGuess={handleColordleSubmit} onGetHint={async () => { const h = await getColorHint(targetColorName); setColordleHint(h); }} isLoading={isColorLoading} isHintLoading={false} currentHint={colordleHint} /></div>}
               {view === 'geodle-game' && <div className="fixed bottom-0 left-0 right-0 z-[65]"><GeodleInput onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
 
-              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setIsPaused(false); setView(`${activeGameType}-menu` as View); }} onRestart={() => { setIsPaused(false); resetGameState(`${activeGameType}-game` as View); if (activeGameType === 'sudoku') startSudoku(difficulty!); else if (activeGameType === 'wordle') startWordle(difficulty!); else if (activeGameType === 'colordle') startColordle(difficulty!); else startGeodle(difficulty!); }} gameType={activeGameType!} />}
+              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setIsPaused(false); setView('hub'); }} onRestart={() => { setIsPaused(false); resetGameState(`${activeGameType}-game` as View); if (activeGameType === 'sudoku') startSudoku(difficulty!); else if (activeGameType === 'wordle') startWordle(difficulty!); else if (activeGameType === 'colordle') startColordle(difficulty!); else startGeodle(difficulty!); }} gameType={activeGameType!} />}
 
               {(isWon || isLost) && (
                 <div className="fixed inset-0 z-[120] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
                   <div className="text-center w-full max-w-sm">
-                    <h2 className="text-7xl font-black mb-6 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
-                    <div className="bg-zinc-50 rounded-[3.5rem] p-10 border border-zinc-100 mb-10">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Target</p>
-                      <p className="text-3xl font-black uppercase tracking-tight">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
-                      {wordExplanation && <p className="mt-4 text-[13px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
-                      <div className="mt-8 pt-8 border-t border-zinc-200 grid grid-cols-2">
-                        <div><p className="text-[9px] font-bold text-zinc-400">Time</p><p className="text-2xl font-black tabular-nums">{formatTime(elapsedTime)}</p></div>
-                        <div><p className="text-[9px] font-bold text-zinc-400">Status</p><p className={`text-2xl font-black ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>{isWon ? 'WIN' : 'LOSS'}</p></div>
+                    <h2 className="text-6xl sm:text-7xl font-black mb-4 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
+                    <div className="bg-zinc-50 rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 border border-zinc-100 mb-8 sm:mb-10">
+                      <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">Target</p>
+                      <p className="text-2xl sm:text-3xl font-black uppercase tracking-tight truncate px-4">{activeGameType === 'sudoku' ? 'GRID' : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))}</p>
+                      {wordExplanation && <p className="mt-3 text-[12px] sm:text-[13px] font-medium text-zinc-600 leading-tight italic">"{wordExplanation}"</p>}
+                      <div className="mt-6 pt-6 border-t border-zinc-200 grid grid-cols-2 gap-4">
+                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Time</p><p className="text-xl sm:text-2xl font-black tabular-nums">{formatTime(elapsedTime)}</p></div>
+                        <div><p className="text-[8px] font-bold text-zinc-400 uppercase">Status</p><p className={`text-xl sm:text-2xl font-black ${isWon ? 'text-emerald-500' : 'text-red-500'}`}>{isWon ? 'WIN' : 'LOSS'}</p></div>
                       </div>
                     </div>
-                    <button onClick={() => setView(`${activeGameType}-menu` as View)} className="w-full bg-black text-white py-7 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all text-[11px]">Back to Menu</button>
+                    <button onClick={() => setView('hub')} className="w-full bg-black text-white py-6 rounded-full font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all text-[10px]">Back to Menu</button>
                   </div>
                 </div>
               )}
@@ -401,11 +408,7 @@ const App: React.FC = () => {
           game={selectedHistoryGame} 
           onClose={() => setSelectedHistoryGame(null)} 
           onBringToGame={() => {
-            if (!('endTime' in selectedHistoryGame)) {
-              setSelectedHistoryGame(null);
-            } else {
-              setSelectedHistoryGame(null);
-            }
+            setSelectedHistoryGame(null);
           }}
         />
       )}

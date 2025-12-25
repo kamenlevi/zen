@@ -18,8 +18,8 @@ const Board: React.FC<BoardProps> = ({ boardState, selectedCell, onCellSelect, h
   };
 
   return (
-    <div className="flex items-center justify-center w-full px-2">
-      <div className="w-full max-w-[min(92vw,420px)] aspect-square bg-zinc-900 grid grid-cols-9 grid-rows-9 p-[1.5px] rounded-2xl shadow-2xl border-[2.5px] border-zinc-900 overflow-hidden">
+    <div className="flex items-center justify-center w-full px-2 sm:px-4">
+      <div className="w-full max-w-[min(90vw,400px,50vh)] aspect-square bg-zinc-900 grid grid-cols-9 grid-rows-9 p-[1px] rounded-xl shadow-2xl border-[1.5px] border-zinc-900 overflow-hidden">
         {boardState.map((row, ri) => 
           row.map((cell, ci) => {
             const isSelected = selectedCell?.row === ri && selectedCell?.col === ci;
@@ -34,18 +34,17 @@ const Board: React.FC<BoardProps> = ({ boardState, selectedCell, onCellSelect, h
                 key={`${ri}-${ci}`}
                 onClick={() => onCellSelect(ri, ci)}
                 className={`
-                  relative flex items-center justify-center cursor-pointer select-none transition-all duration-100
-                  bg-white
-                  ${hasThickRight ? 'border-r-[2.5px] border-r-zinc-900' : 'border-r-[0.5px] border-r-zinc-100'}
-                  ${hasThickBottom ? 'border-b-[2.5px] border-b-zinc-900' : 'border-b-[0.5px] border-b-zinc-100'}
+                  relative flex items-center justify-center cursor-pointer select-none transition-all duration-75
+                  ${hasThickRight ? 'border-r-[1.5px] border-r-zinc-900' : 'border-r-[0.5px] border-r-zinc-100'}
+                  ${hasThickBottom ? 'border-b-[1.5px] border-b-zinc-900' : 'border-b-[0.5px] border-b-zinc-100'}
                   ${ci === 8 ? 'border-r-0' : ''}
                   ${ri === 8 ? 'border-b-0' : ''}
-                  ${isSelected ? 'bg-zinc-800 z-10 scale-[1.04] shadow-lg' : sameValue ? 'bg-zinc-300' : related ? 'bg-zinc-50' : 'bg-white'}
+                  ${isSelected ? 'bg-zinc-800 z-10 scale-[1.03] shadow-lg' : sameValue ? 'bg-zinc-200' : related ? 'bg-zinc-50' : 'bg-white'}
                   h-full w-full
                 `}
               >
                 <span className={`
-                  text-xl sm:text-2xl font-black tabular-nums
+                  text-lg sm:text-2xl font-black tabular-nums
                   ${isSelected ? 'text-white' : cell.isError ? 'text-red-500 animate-shake' : cell.readonly ? 'text-zinc-900' : 'text-blue-600 font-bold'}
                 `}>
                   {cell.value !== 0 ? cell.value : ''}
