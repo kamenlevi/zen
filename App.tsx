@@ -7,22 +7,18 @@ import {
 import { GoogleGenAI } from "@google/genai";
 import { generateSudoku } from './services/sudokuService.ts';
 import { generateWordleWord, getWordFeedback, isValidWord } from './services/wordleService.ts';
-import { getRandomNicheColor, getSemanticCloseness, getColorHint } from './services/colorService.ts';
-import { getRandomCountry, validateAndGetLocation, getGeoHint } from './services/geoService.ts';
+import { getRandomNicheColor } from './services/colorService.ts';
+import { getRandomCountry } from './services/geoService.ts';
 import { formatTime } from './utils/time.ts';
 import Board from './components/Board.tsx';
 import StaticNumberPad from './components/StaticNumberPad.tsx';
 import WordleBoard from './components/WordleBoard.tsx';
 import WordleKeyboard from './components/WordleKeyboard.tsx';
 import ColordleBoard from './components/ColordleBoard.tsx';
-import ColordleInput from './components/ColordleInput.tsx';
 import GeodleBoard from './components/GeodleBoard.tsx';
-import GeodleInput from './components/GeodleInput.tsx';
 import DifficultySelector from './components/DifficultySelector.tsx';
-import HistoryScreen from './components/HistoryScreen.tsx';
-import SettingsScreen from './components/SettingsScreen.tsx';
-import StatisticsModal from './components/StatisticsModal.tsx';
-import { ClockIcon, PauseIcon, ResetIcon, UndoIcon, RedoIcon, SparkleIcon } from './components/icons.tsx';
+import PauseMenu from './components/PauseMenu.tsx';
+import { ClockIcon, PauseIcon, ChevronLeftIcon } from './components/icons.tsx';
 
 type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history' | 'settings';
 
@@ -40,11 +36,11 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>('hub');
   const [activeGameType, setActiveGameType] = useState<'sudoku' | 'wordle' | 'colordle' | 'geodle' | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
+  const [settings] = useState<GameSettings>(DEFAULT_SETTINGS);
   
   const [boardState, setBoardState] = useState<BoardState | null>(null);
   const [undoStack, setUndoStack] = useState<BoardState[]>([]);
-  const [redoStack, setRedoStack] = useState<BoardState[]>([]);
+  const [, setRedoStack] = useState<BoardState[]>([]);
   const [initialPuzzle, setInitialPuzzle] = useState<Grid | null>(null);
   const [solution, setSolution] = useState<Grid | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
@@ -56,19 +52,15 @@ const App: React.FC = () => {
   const [wordleResults, setWordleResults] = useState<WordleStatus[][]>([]);
   const [keyStatus, setKeyStatus] = useState<Record<string, WordleStatus>>({});
   const [isWordleValidating, setIsWordleValidating] = useState(false);
-  const [wordleShakeTrigger, setWordleShakeTrigger] = useState(0);
+  const [, setWordleShakeTrigger] = useState(0);
   const [wordExplanation, setWordExplanation] = useState<string>('');
   
   const [targetColor, setTargetColor] = useState<string>('');
-  const [targetColorName, setTargetColorName] = useState<string>('');
-  const [colordleGuesses, setColordleGuesses] = useState<ColordleMove[]>([]);
-  const [colordleHint, setColordleHint] = useState<string | null>(null);
+  const [, setTargetColorName] = useState<string>('');
+  const [colordleGuesses] = useState<ColordleMove[]>([]);
 
   const [targetCountry, setTargetCountry] = useState<string>('');
-  const [geodleGuesses, setGeodleGuesses] = useState<GeodleMove[]>([]);
-  const [geodleHint, setGeodleHint] = useState<string | null>(null);
-  const [isGeoLoading, setIsGeoLoading] = useState(false);
-  const [isGeoHintLoading, setIsGeoHintLoading] = useState(false);
+  const [geodleGuesses] = useState<GeodleMove[]>([]);
   
   const [isWon, setIsWon] = useState(false);
   const [isLost, setIsLost] = useState(false);
@@ -77,16 +69,6 @@ const App: React.FC = () => {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
   
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<CompletedGame | InProgressGame | null>(null);
-  const lastAutoSave = useRef<number>(0);
-
-  useEffect(() => {
-    try {
-      const savedSettings = localStorage.getItem('zen_settings');
-      if (savedSettings) setSettings(JSON.parse(savedSettings));
-    } catch (e) { console.error(e); }
-  }, []);
-
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     if (explanation) setWordExplanation(explanation);
     setIsWon(won);
@@ -112,11 +94,13 @@ const App: React.FC = () => {
   }, [activeGameType, difficulty, startTime, initialPuzzle, targetWord, targetColor, targetCountry, solution]);
 
   const fetchWordExplanation = async (word: string) => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || apiKey === 'undefined') return "";
+    const ai = new GoogleGenAI({ apiKey });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Provide a simple, plain one-sentence dictionary-style definition for the word "${word}". No flowery language.`,
+        contents: `Provide a simple one-sentence definition for "${word}".`,
       });
       return response.text?.trim() || "";
     } catch (e) {
@@ -159,41 +143,47 @@ const App: React.FC = () => {
     if (currentGuess.length !== 5 || isPaused || isWon || isLost || isWordleValidating) return;
     setIsWordleValidating(true);
     const wordToValidate = currentGuess.toUpperCase();
-    const valid = await isValidWord(wordToValidate);
-    if (!valid) { 
-      setIsWordleValidating(false);
-      setWordleShakeTrigger(p => p + 1); 
-      return; 
-    }
-    const feedback = getWordFeedback(wordToValidate, targetWord);
-    const newResults = [...wordleResults, feedback];
-    const newGuesses = [...guesses, wordToValidate];
     
-    // Clear current guess and update guesses list simultaneously to avoid double-rendering word
-    setCurrentGuess(''); 
-    setWordleResults(newResults);
-    setGuesses(newGuesses);
+    try {
+      const valid = await isValidWord(wordToValidate);
+      if (!valid) { 
+        setIsWordleValidating(false);
+        setWordleShakeTrigger(p => p + 1); 
+        return; 
+      }
+      
+      const feedback = getWordFeedback(wordToValidate, targetWord);
+      const newResults = [...wordleResults, feedback];
+      const newGuesses = [...guesses, wordToValidate];
+      
+      setCurrentGuess(''); 
+      setWordleResults(newResults);
+      setGuesses(newGuesses);
 
-    const newKeys = { ...keyStatus };
-    feedback.forEach((s, idx) => {
-      const char = wordToValidate[idx];
-      if (s === 'correct' || (s === 'present' && newKeys[char] !== 'correct')) newKeys[char] = s;
-      else if (!newKeys[char]) newKeys[char] = s;
-    });
-    setKeyStatus(newKeys);
-    
-    const newMove: WordleMove = { type: 'wordle-guess', word: wordToValidate, timestamp: Date.now() };
-    const nextHistory = [...moveHistory, newMove];
-    setMoveHistory(nextHistory);
-    
-    const win = wordToValidate === targetWord;
-    const loss = !win && newGuesses.length >= MAX_WORDLE_GUESSES;
-    
-    if (win || loss) {
-      const explanation = await fetchWordExplanation(targetWord);
-      setIsWordleValidating(false);
-      setTimeout(() => handleGameOver(win, nextHistory, explanation), 800);
-    } else {
+      const newKeys = { ...keyStatus };
+      feedback.forEach((s, idx) => {
+        const char = wordToValidate[idx];
+        if (s === 'correct' || (s === 'present' && newKeys[char] !== 'correct')) newKeys[char] = s;
+        else if (!newKeys[char]) newKeys[char] = s;
+      });
+      setKeyStatus(newKeys);
+      
+      const newMove: WordleMove = { type: 'wordle-guess', word: wordToValidate, timestamp: Date.now() };
+      const nextHistory = [...moveHistory, newMove];
+      setMoveHistory(nextHistory);
+      
+      const win = wordToValidate === targetWord;
+      const loss = !win && newGuesses.length >= MAX_WORDLE_GUESSES;
+      
+      if (win || loss) {
+        const explanation = await fetchWordExplanation(targetWord);
+        setIsWordleValidating(false);
+        setTimeout(() => handleGameOver(win, nextHistory, explanation), 800);
+      } else {
+        setIsWordleValidating(false);
+      }
+    } catch (err) {
+      console.error(err);
       setIsWordleValidating(false);
     }
   }, [currentGuess, targetWord, wordleResults, guesses, isPaused, isWon, isLost, keyStatus, moveHistory, handleGameOver, isWordleValidating]);
@@ -204,7 +194,7 @@ const App: React.FC = () => {
       if (e.key === 'Escape') {
         if (isPaused) { setIsPaused(false); return; }
         if (isWon || isLost) { setView(`${activeGameType}-menu` as View); return; }
-        if (view.includes('-game')) setView(`${activeGameType}-menu` as View);
+        if (view.includes('-game')) setIsPaused(true);
         else setView('hub');
       }
       if (isPaused || isWon || isLost || isWordleValidating) return;
@@ -219,7 +209,7 @@ const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [view, isPaused, isWon, isLost, isWordleValidating, currentGuess, handleSudokuInput, handleSudokuErase, handleWordleSubmit]);
+  }, [view, isPaused, isWon, isLost, isWordleValidating, currentGuess, handleSudokuInput, handleSudokuErase, handleWordleSubmit, activeGameType]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -232,7 +222,7 @@ const App: React.FC = () => {
   const resetGameState = (targetView: View) => {
     setIsWon(false); setIsLost(false); setIsPaused(false); setElapsedTime(0); setStartTime(Date.now());
     setMoveHistory([]); setView(targetView); setCurrentGuess(''); setKeyStatus({}); setWordleResults([]); 
-    setGuesses([]); setWordExplanation(''); setIsWordleValidating(false);
+    setGuesses([]); setWordExplanation(''); setIsWordleValidating(false); setSelectedCell(null);
   };
 
   const startSudoku = (l: Difficulty) => { 
@@ -243,6 +233,13 @@ const App: React.FC = () => {
   const startWordle = (l: Difficulty) => { setDifficulty(l); setActiveGameType('wordle'); setTargetWord(generateWordleWord(l)); resetGameState('wordle-game'); };
   const startColordle = (l: Difficulty) => { const c = getRandomNicheColor(l); setDifficulty(l); setActiveGameType('colordle'); setTargetColor(c.hex); setTargetColorName(c.name); resetGameState('colordle-game'); };
   const startGeodle = (l: Difficulty) => { const c = getRandomCountry(l); setDifficulty(l); setActiveGameType('geodle'); setTargetCountry(c); resetGameState('geodle-game'); };
+
+  const restartCurrentGame = () => {
+    if (activeGameType === 'sudoku') startSudoku(difficulty!);
+    else if (activeGameType === 'wordle') startWordle(difficulty!);
+    else if (activeGameType === 'colordle') startColordle(difficulty!);
+    else if (activeGameType === 'geodle') startGeodle(difficulty!);
+  };
 
   return (
     <div className="app-container relative bg-zinc-100 overflow-hidden font-sans">
@@ -269,11 +266,27 @@ const App: React.FC = () => {
           {view.includes('-game') && (
             <div className="h-full flex flex-col">
               <header className="px-8 py-8 mt-4 flex items-center justify-between flex-shrink-0 z-[70]">
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-black tracking-[0.4em] text-zinc-400">{difficulty} • {activeGameType}</span>
-                  <div className="flex items-center space-x-1 text-black mt-1"><ClockIcon /><span className="text-2xl tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>
+                <button 
+                  onClick={() => setView(`${activeGameType}-menu` as View)} 
+                  className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 active:scale-90 transition-transform"
+                >
+                  <ChevronLeftIcon className="w-6 h-6 text-zinc-400" />
+                </button>
+                
+                <div className="flex flex-col items-center">
+                  <span className="text-[9px] uppercase font-black tracking-[0.4em] text-zinc-400 mb-1">{difficulty} • {activeGameType}</span>
+                  <div className="flex items-center space-x-1 text-black">
+                    <ClockIcon className="w-3.5 h-3.5" />
+                    <span className="text-xl tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span>
+                  </div>
                 </div>
-                <button onClick={() => setIsPaused(p => !p)} className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100">{isPaused ? <ClockIcon /> : <PauseIcon />}</button>
+
+                <button 
+                  onClick={() => setIsPaused(p => !p)} 
+                  className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 active:scale-90 transition-transform"
+                >
+                  <PauseIcon className="w-6 h-6 text-zinc-900" />
+                </button>
               </header>
 
               <main className="flex-grow flex flex-col items-center justify-center px-4 relative pb-44">
@@ -286,8 +299,17 @@ const App: React.FC = () => {
               {view === 'sudoku-game' && <footer className="fixed bottom-0 left-0 right-0 px-8 pb-10 bg-white/95 border-t border-zinc-100 pt-6"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={handleSudokuErase} show={!!selectedCell} /></footer>}
               {view === 'wordle-game' && <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-zinc-100"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
 
+              {isPaused && (
+                <PauseMenu 
+                  onResume={() => setIsPaused(false)} 
+                  onExit={() => { setIsPaused(false); setView(`${activeGameType}-menu` as View); }}
+                  onRestart={() => { setIsPaused(false); restartCurrentGame(); }}
+                  gameType={activeGameType!}
+                />
+              )}
+
               {(isWon || isLost) && (
-                <div className="fixed inset-0 z-[100] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
+                <div className="fixed inset-0 z-[110] bg-white/98 backdrop-blur-3xl flex items-center justify-center p-8 animate-pop-in">
                   <div className="text-center w-full max-w-sm">
                     <h2 className="text-7xl font-black mb-6 uppercase tracking-tighter">{isWon ? 'SOLVED' : 'FAILED'}</h2>
                     <div className="bg-zinc-50 rounded-[3.5rem] p-10 border border-zinc-100 mb-10">
