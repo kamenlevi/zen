@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface NotesEditorProps {
   currentNotes: string;
@@ -9,6 +9,20 @@ interface NotesEditorProps {
 
 const NotesEditor: React.FC<NotesEditorProps> = ({ currentNotes, onSave, onClose }) => {
   const [notes, setNotes] = useState(currentNotes);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   const handleSave = () => {
     onSave(notes);

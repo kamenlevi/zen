@@ -91,7 +91,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
               {!isCompleted && onBringToGame && (
                 <button 
                   onClick={() => onBringToGame(game as InProgressGame)} 
-                  className="w-full bg-zinc-100 text-zinc-800 py-4 rounded-xl font-black uppercase text-[11px] tracking-[0.3em] shadow-sm active:scale-95 transition-all mb-4"
+                  className="w-full bg-black text-white py-5 rounded-full font-black uppercase text-[12px] tracking-[0.3em] shadow-xl active:scale-95 transition-all mb-4"
                 >
                   Resume Game
                 </button>

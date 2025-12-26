@@ -91,11 +91,19 @@ const App: React.FC = () => {
 
   const [swipeY, setSwipeY] = useState(0);
   const touchStartY = useRef<number | null>(null);
+  const gameContainerRef = useRef<HTMLDivElement>(null); // New ref for game container
 
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
     if (saved) { try { setSettings(JSON.parse(saved)); } catch (e) {} }
   }, []);
+
+  // Effect to focus the game container when a game view is active
+  useEffect(() => {
+    if (view.includes('-game') && gameContainerRef.current) {
+      gameContainerRef.current.focus();
+    }
+  }, [view]);
 
   const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
     const updated = { ...settings, ...newSettings };
@@ -465,9 +473,12 @@ const App: React.FC = () => {
       </div>
 
       {view !== 'hub' && (
-        <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+        <div 
+          ref={gameContainerRef} // Apply the ref here
+          tabIndex={-1} // Make it focusable
+          onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
           style={{ transform: `translateY(${swipeY}px)`, transition: swipeY === 0 ? 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none', borderRadius: swipeY > 0 ? '40px' : '0px' }}
-          className="absolute inset-0 bg-white shadow-2xl z-50 overflow-y-auto no-scrollbar animate-fade-in flex flex-col"
+          className="absolute inset-0 bg-white shadow-2xl z-50 overflow-y-auto no-scrollbar animate-fade-in flex flex-col outline-none" // Add outline-none to hide focus outline
         >
           {view.includes('-menu') && (
             <div className="h-full flex flex-col items-center justify-center relative p-6">

@@ -6,7 +6,7 @@ export const DIFFICULTIES: Difficulty[] = [Difficulty.Easy, Difficulty.Medium, D
 export const VERSION_HISTORY = [
     {
         version: "1.0.0",
-        date: "December 20, 2025", // Adjusted initial date
+        date: "December 1, 2024",
         changes: [
             "Initial release with Sudoku, Wordle, Colordle, and Geodle games.",
             "Basic game logic and UI.",
@@ -14,7 +14,7 @@ export const VERSION_HISTORY = [
     },
     {
         version: "1.1.0",
-        date: "December 22, 2025", // Adjusted date
+        date: "December 10, 2024",
         changes: [
             "Performance improvement: Migrated Geo and Color game logic from remote AI to client-side calculations.",
             "Optimized AI usage for hints with caching.",
@@ -34,7 +34,7 @@ export const VERSION_HISTORY = [
     },
     {
         version: "1.2.0",
-        date: "December 24, 2025", // Adjusted date
+        date: "December 20, 2024",
         changes: [
             "Re-evaluated and improved Wordle difficulty assignment logic.",
             "Enhanced End Game Menu to display outcome details (completed/failed, time, description).",
@@ -66,6 +66,17 @@ export const VERSION_HISTORY = [
             "Increased general size and improved appearance of the Settings tab.",
             "Adjusted Wordle letter box sizes to fit better on mobile screens.",
             "Improved mobile typing experience for Colordle and Geodle by optimizing autofocus and adding inputmode/enterKeyHint attributes."
+        ]
+    },
+    {
+        version: "1.3.4",
+        date: "December 26, 2025",
+        changes: [
+            "Implemented auto-typing on PC: Input fields now gain focus automatically when a game view is active.",
+            "Corrected version dates in VERSION_HISTORY to be accurate and chronological.",
+            "Implemented ESC key functionality in NotesEditor to close the notes editor.",
+            "Ensured a subtle transition back to the pause menu after closing the notes editor (animations already present).",
+            "Made the 'Resume Game' button in StatisticsModal larger and black for improved visibility."
         ]
     }
 ];
