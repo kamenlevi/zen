@@ -85,5 +85,12 @@ export const VERSION_HISTORY = [
         changes: [
             "Version bump as per user request."
         ]
+    },
+    {
+        version: "1.3.6",
+        date: "December 26, 2025",
+        changes: [
+            "Implemented robust, centralized focus management for auto-typing on PC. Input fields for Colordle/Geodle and the game container for Wordle now reliably gain and retain focus, allowing typing without clicking."
+        ]
     }
 ];
