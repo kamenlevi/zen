@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BulbIcon } from './icons.tsx';
 
 interface GeodleInputProps {
@@ -12,7 +12,7 @@ interface GeodleInputProps {
   currentHint: string | null;
 }
 
-const GeodleInput: React.FC<GeodleInputProps> = ({ 
+const GeodleInput = React.forwardRef<HTMLInputElement, GeodleInputProps>(({ 
   value, 
   onChange, 
   onGuess, 
@@ -20,8 +20,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
   isLoading, 
   isHintLoading, 
   currentHint 
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+}, ref) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -36,23 +35,6 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  useEffect(() => {
-    if (inputRef.current && !isLoading && !isHintLoading) {
-      inputRef.current.focus();
-    }
-  }, [isLoading, isHintLoading]);
-
-  const handleFocus = () => {
-    // Optionally handle focus event if needed
-  };
-
-  const handleBlur = () => {
-    // Force re-focus if input loses focus, common for "always typing" experience
-    if (inputRef.current && !isLoading && !isHintLoading) {
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,44 +55,20 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
       <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
         <div className="relative">
           <input
-            ref={inputRef}
+            ref={ref}
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="Type country name..."
             className="w-full bg-zinc-50 border-2 px-7 py-5 rounded-full text-lg font-bold tracking-tight outline-none border-transparent focus:border-black focus:bg-white text-black shadow-inner"
             disabled={isLoading || isHintLoading}
             autoComplete="off"
-            autoFocus
             inputMode="text"
             enterKeyHint="go"
             tabIndex={0}
           />
           <p className="text-[10px] text-zinc-500 mt-2 text-center">Distance calculated from geographical centers.</p>
         </div>
-        
-        <div className="flex gap-3">
-           <button 
-             type="button"
-             onPointerDown={onGetHint}
-             disabled={!isOnline}
-             className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-16 h-16 rounded-full flex items-center justify-center border border-zinc-200 shadow-sm disabled:opacity-30"
-           >
-             <BulbIcon className="w-8 h-8 text-black" />
-           </button>
-           <button 
-            type="submit"
-            disabled={!value.trim() || isLoading}
-            className="flex-grow bg-black text-white h-16 rounded-full font-black tracking-[0.3em] uppercase text-[11px] shadow-xl active:scale-95 disabled:opacity-30"
-          >
-            {isLoading ? 'Traveling...' : 'Cast Guess'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
+
 
 export default GeodleInput;

@@ -91,19 +91,27 @@ const App: React.FC = () => {
 
   const [swipeY, setSwipeY] = useState(0);
   const touchStartY = useRef<number | null>(null);
-  const gameContainerRef = useRef<HTMLDivElement>(null); // New ref for game container
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+  const colordleInputRef = useRef<HTMLInputElement>(null); // New ref
+  const geodleInputRef = useRef<HTMLInputElement>(null); // New ref // New ref for game container
 
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
     if (saved) { try { setSettings(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
-  // Effect to focus the game container when a game view is active
   useEffect(() => {
-    if (view.includes('-game') && gameContainerRef.current) {
-      gameContainerRef.current.focus();
+    // Centralized focus management
+    if (!isPaused && !showNotesEditor && !selectedHistoryGame) {
+      if (view === 'wordle-game' && gameContainerRef.current) {
+        gameContainerRef.current.focus();
+      } else if (view === 'colordle-game' && colordleInputRef.current) {
+        colordleInputRef.current.focus();
+      } else if (view === 'geodle-game' && geodleInputRef.current) {
+        geodleInputRef.current.focus();
+      }
     }
-  }, [view]);
+  }, [view, isPaused, showNotesEditor, selectedHistoryGame]); // Dependencies to re-evaluate focus
 
   const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
     const updated = { ...settings, ...newSettings };
@@ -538,8 +546,8 @@ const App: React.FC = () => {
               <div className="flex-shrink-0 w-full">
                 {view === 'sudoku-game' && <footer className="px-4 pb-10 bg-white border-t border-zinc-100 pt-6 ios-bottom-bar shadow-sm"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
                 {view === 'wordle-game' && !isWordleLoading && <div className="pb-12 bg-white border-t border-zinc-100 pt-5 ios-bottom-bar shadow-sm"><WordleKeyboard onKey={k => { if (currentGuess.length < 5) setCurrentGuess(p => p + k); }} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
-                {view === 'colordle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><ColordleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
-                {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
+                {view === 'colordle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><ColordleInput ref={colordleInputRef} value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
+                {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><GeodleInput ref={geodleInputRef} value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
               </div>
 
               {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} notes={currentNotes} />}

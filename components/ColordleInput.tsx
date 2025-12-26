@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BulbIcon } from './icons.tsx';
 
 interface ColordleInputProps {
@@ -12,7 +12,7 @@ interface ColordleInputProps {
   currentHint: string | null;
 }
 
-const ColordleInput: React.FC<ColordleInputProps> = ({ 
+const ColordleInput = React.forwardRef<HTMLInputElement, ColordleInputProps>(({ 
   value, 
   onChange, 
   onGuess, 
@@ -20,15 +20,8 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   isLoading, 
   isHintLoading, 
   currentHint 
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+}, ref) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    if (inputRef.current && !isLoading && !isHintLoading) {
-      inputRef.current.focus();
-    }
-  }, [isLoading, isHintLoading]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -42,17 +35,6 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const handleFocus = () => {
-    // Optionally handle focus event if needed
-  };
-
-  const handleBlur = () => {
-    // Force re-focus if input loses focus, common for "always typing" experience
-    if (inputRef.current && !isLoading && !isHintLoading) {
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,17 +55,14 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
       <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
         <div className="relative">
           <input
-            ref={inputRef}
+            ref={ref}
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder="Type color name..."
             className="w-full bg-zinc-50 border-2 px-7 py-5 rounded-full text-lg font-bold tracking-tight outline-none border-transparent focus:border-black focus:bg-white text-black shadow-inner"
             disabled={isLoading || isHintLoading}
             autoComplete="off"
-            autoFocus
             inputMode="text"
             enterKeyHint="go"
             tabIndex={0}
