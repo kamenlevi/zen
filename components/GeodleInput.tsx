@@ -38,7 +38,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
   }, []);
 
   useEffect(() => {
-    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
+    if (inputRef.current && !isLoading && !isHintLoading) { // Removed document.activeElement check
       inputRef.current.focus();
     }
   }, [isLoading, isHintLoading]); // Removed 'value' from dependency array
@@ -73,6 +73,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
             autoFocus
             inputMode="text"
             enterKeyHint="go"
+            tabIndex={0} // Added tabIndex for explicit focusability
           />
           <p className="text-[10px] text-zinc-500 mt-2 text-center">Distance calculated from geographical centers.</p>
         </div>

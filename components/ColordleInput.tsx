@@ -25,7 +25,7 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
+    if (inputRef.current && !isLoading && !isHintLoading) { // Removed document.activeElement check
       inputRef.current.focus();
     }
   }, [isLoading, isHintLoading]); // Removed 'value' from dependency array
@@ -73,6 +73,7 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             autoFocus
             inputMode="text"
             enterKeyHint="go"
+            tabIndex={0} // Added tabIndex for explicit focusability
           />
         </div>
         
