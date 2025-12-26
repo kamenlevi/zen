@@ -24,7 +24,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
   useEffect(() => {
     try {
       setCompleted(JSON.parse(localStorage.getItem(`zen_${category}_history`) || '[]'));
-      setInProgress(JSON.parse(localStorage.getItem(`zen_${category}_progress`) || '[]'));
+      setInProgress(JSON.parse(localStorage.getItem(`zen_${category}_in_progress_list`) || '[]'));
     } catch (e) {}
   }, [category]);
 

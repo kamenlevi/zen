@@ -8,6 +8,7 @@ interface CompletionMenuProps {
     elapsedTime: number;
     onExit: () => void;
     onRestart: () => void;
+    explanation?: string;
 }
 
 const CompletionMenu: React.FC<CompletionMenuProps> = ({
@@ -16,6 +17,7 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
     elapsedTime,
     onExit,
     onRestart,
+    explanation
 }) => {
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -32,6 +34,11 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
                 <p className="text-sm uppercase font-bold tracking-widest text-zinc-500">
                     {gameType} - {isWon ? 'Completed' : 'Lost'} in {formatTime(elapsedTime)}
                 </p>
+                {explanation && (
+                    <p className="text-xs italic text-zinc-500 mt-2">
+                        "{explanation}"
+                    </p>
+                )}
             </div>
 
             <div className="w-full max-w-xs flex flex-col gap-4">

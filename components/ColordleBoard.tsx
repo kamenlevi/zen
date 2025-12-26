@@ -4,9 +4,10 @@ import { ColordleMove } from '../types.ts';
 
 interface ColordleBoardProps {
   guesses: ColordleMove[];
+  shakeTrigger: number;
 }
 
-const ColordleBoard: React.FC<ColordleBoardProps> = ({ guesses }) => {
+const ColordleBoard: React.FC<ColordleBoardProps> = ({ guesses, shakeTrigger }) => {
   const { latestGuess, sortedOthers } = useMemo(() => {
     if (guesses.length === 0) return { latestGuess: null, sortedOthers: [] };
     
@@ -27,7 +28,7 @@ const ColordleBoard: React.FC<ColordleBoardProps> = ({ guesses }) => {
   }
 
   return (
-    <div className="w-full space-y-3 animate-fade-in px-4">
+    <div className={`w-full space-y-3 animate-fade-in px-4 ${shakeTrigger > 0 ? 'animate-shake' : ''}`}>
       {/* Latest Guess - Always on top */}
       {latestGuess && (
         <div 

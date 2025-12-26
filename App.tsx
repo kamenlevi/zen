@@ -67,6 +67,7 @@ const App: React.FC = () => {
   const [colordleHint, setColordleHint] = useState<string | null>(null);
   const [isColorLoading, setIsColorLoading] = useState(false);
   const [isColorHintLoading, setIsColorHintLoading] = useState(false);
+  const [colordleShakeTrigger, setColordleShakeTrigger] = useState(0);
 
   const [targetCountry, setTargetCountry] = useState<string>('');
   const [geodleGuesses, setGeodleGuesses] = useState<GeodleMove[]>([]);
@@ -76,6 +77,7 @@ const App: React.FC = () => {
   
   const [isWon, setIsWon] = useState(false);
   const [isLost, setIsLost] = useState(false);
+  const [completionExplanation, setCompletionExplanation] = useState<string | undefined>(undefined);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -99,8 +101,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!view.includes('-game') || isWon || isLost || !activeGameType || !difficulty || startTime === null) return;
+    const currentProgressId = `${activeGameType}-${difficulty}-${startTime}`;
     const progress: InProgressGame = {
-      id: `${activeGameType}-${difficulty}-${startTime}`,
+      id: currentProgressId,
       gameType: activeGameType,
       difficulty: difficulty,
       startTime: startTime,
@@ -110,12 +113,24 @@ const App: React.FC = () => {
       elapsedTime,
       moves: moveHistory
     };
-    localStorage.setItem(`zen_${activeGameType}_progress`, JSON.stringify(progress));
+    try {
+        const allInProgress = JSON.parse(localStorage.getItem(`zen_${activeGameType}_in_progress_list`) || '[]');
+        const existingIndex = allInProgress.findIndex((g: InProgressGame) => g.id === currentProgressId);
+        if (existingIndex > -1) {
+            allInProgress[existingIndex] = progress;
+        } else {
+            allInProgress.push(progress);
+        }
+        localStorage.setItem(`zen_${activeGameType}_in_progress_list`, JSON.stringify(allInProgress));
+    } catch (e) {
+        console.error("Error saving in-progress game:", e);
+    }
   }, [view, isWon, isLost, activeGameType, difficulty, startTime, initialPuzzle, solution, boardState, targetWord, targetColor, targetColorName, targetCountry, guesses, colordleGuesses, geodleGuesses, elapsedTime, moveHistory]);
 
   const handleGameOver = useCallback((won: boolean, finalMoves: Move[], explanation?: string) => {
     setIsWon(won);
     setIsLost(!won);
+    setCompletionExplanation(explanation);
     const finished: CompletedGame = { 
       id: `${activeGameType}-${difficulty}-${startTime}`, 
       gameType: activeGameType!, 
@@ -130,7 +145,10 @@ const App: React.FC = () => {
     try {
       const hist = JSON.parse(localStorage.getItem(`zen_${activeGameType}_history`) || '[]');
       localStorage.setItem(`zen_${activeGameType}_history`, JSON.stringify([...hist, finished]));
-      localStorage.removeItem(`zen_${activeGameType}_progress`);
+      
+      const allInProgress = JSON.parse(localStorage.getItem(`zen_${activeGameType}_in_progress_list`) || '[]');
+      const updatedInProgress = allInProgress.filter((g: InProgressGame) => g.id !== finished.id);
+      localStorage.setItem(`zen_${activeGameType}_in_progress_list`, JSON.stringify(updatedInProgress));
     } catch (e) {}
   }, [activeGameType, difficulty, startTime, initialPuzzle, targetWord, targetColor, targetCountry, solution]);
 
@@ -225,6 +243,12 @@ const App: React.FC = () => {
     setIsColorLoading(true);
     try {
       const result = await getSemanticCloseness(guess, targetColorName);
+      if (!result.isValid) {
+        setIsColorLoading(false);
+        setColordleShakeTrigger(p => p + 1); 
+        setTimeout(() => setColordleShakeTrigger(0), 500);
+        return; 
+      }
       const newMove: ColordleMove = {
         type: 'color-guess', guessName: result.correctedName || guess, guessHex: result.hex,
         percentage: result.percentage, timestamp: Date.now()
@@ -277,9 +301,10 @@ const App: React.FC = () => {
 
   const resetGameState = (targetView: View) => {
     setIsWon(false); setIsLost(false); setIsPaused(false); setElapsedTime(0); setStartTime(Date.now());
+    setCompletionExplanation(undefined);
     setMoveHistory([]); setView(targetView); setCurrentGuess(''); setKeyStatus({}); setWordleResults([]); 
     setGuesses([]); setColordleGuesses([]); setGeodleGuesses([]);
-    setColordleHint(null); setGeodleHint(null); setSudokuHistory([]); setSudokuRedoStack([]);
+    setColordleHint(null); setGeodleHint(null); setSudokuHistory([]); setSudokuRedoStack([]); setColordleShakeTrigger(0);
   };
 
   const startSudoku = (l: Difficulty) => { 
@@ -339,6 +364,15 @@ const App: React.FC = () => {
     setIsPaused(false);
     setIsWon(false);
     setIsLost(false);
+
+    // Remove the continued game from the in-progress list
+    try {
+        const allInProgress = JSON.parse(localStorage.getItem(`zen_${g.gameType}_in_progress_list`) || '[]');
+        const updatedInProgress = allInProgress.filter((game: InProgressGame) => game.id !== g.id);
+        localStorage.setItem(`zen_${g.gameType}_in_progress_list`, JSON.stringify(updatedInProgress));
+    } catch (e) {
+        console.error("Error removing continued game from in-progress list:", e);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -472,7 +506,7 @@ const App: React.FC = () => {
                 {isWordleLoading && <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/95 backdrop-blur-md animate-fade-in"><div className="w-10 h-10 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-4"></div><p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Loading Session</p></div>}
                 {view === 'sudoku-game' && boardState && <div className="w-full scale-[0.98] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
                 {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex-grow flex items-center justify-center`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
-                {view === 'colordle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} /></div>}
+                {view === 'colordle-game' && <div className={`w-full flex flex-col items-center gap-6 ${colordleShakeTrigger > 0 ? 'animate-shake' : ''}`}><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} shakeTrigger={colordleShakeTrigger} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 
@@ -489,8 +523,9 @@ const App: React.FC = () => {
                   gameType={activeGameType!}
                   isWon={isWon}
                   elapsedTime={elapsedTime}
-                  onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); }}
+                  onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); setCompletionExplanation(undefined); }}
                   onRestart={() => resetGameState(`${activeGameType}-game` as View)}
+                  explanation={completionExplanation}
                 />
               )}
             </div>

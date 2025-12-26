@@ -33,18 +33,27 @@ export async function getSemanticCloseness(guess: string, target: string): Promi
   
   const effectiveGuess = bestMatchName;
   
-  const guessColor = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());
-  const targetColor = COLORS_LIST.find(c => c.name.toLowerCase() === target.toLowerCase());
-
-  if (!guessColor || !targetColor) {
-    return { percentage: 0, hex: "#808080", isValid: false };
-  }
-
-  const difference = getColorDifference(guessColor.hex, targetColor.hex);
-  const percentage = Math.max(0, 100 - difference);
-
-  return {
-    percentage,
+    const guessColor = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());
+    const targetColor = COLORS_LIST.find(c => c.name.toLowerCase() === target.toLowerCase());
+  
+    if (!guessColor || !targetColor) {
+      return { percentage: 0, hex: "#808080", isValid: false }; 
+    }
+  
+    // If the hex codes are identical, it's a 100% match
+    if (guessColor.hex.toLowerCase() === targetColor.hex.toLowerCase()) {
+      return {
+        percentage: 100,
+        hex: guessColor.hex,
+        isValid: true,
+        correctedName: effectiveGuess
+      };
+    }
+  
+    const difference = getColorDifference(guessColor.hex, targetColor.hex);
+    const percentage = Math.max(0, 100 - difference);
+  
+    return {    percentage,
     hex: guessColor.hex,
     isValid: true,
     correctedName: effectiveGuess
