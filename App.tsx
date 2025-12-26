@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS: GameSettings = {
   wordle: { hardMode: false, highContrast: false, showKeyboardFeedback: true },
   colordle: { allowHints: true, vibrationFeedback: true, showHexCodes: false },
   geodle: { metricUnits: true, showCoordinates: false, autoRotateGlobe: true },
-  global: { animations: true, sounds: true, haptics: true }
+  global: { animations: true, sounds: true, haptics: true, historyClickResumes: true }
 };
 
 const App: React.FC = () => {
@@ -481,7 +481,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} />}
+          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} historyClickResumes={settings.global.historyClickResumes} />}
           {view === 'settings' && <SettingsScreen context={activeGameType || 'global'} settings={settings} onSettingsChange={handleSettingsChange} onBack={handleBack} />}
 
           {view.includes('-game') && (

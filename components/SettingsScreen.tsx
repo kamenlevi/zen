@@ -15,7 +15,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   const [showVersionHistory, setShowVersionHistory] = useState(false);
 
   const Toggle = ({ label, desc, value, onChange }: { label: string, desc: string, value: boolean, onChange: (v: boolean) => void }) => (
-    <label className="flex flex-col p-2 sm:p-3 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
+    <label className="flex flex-col p-1.5 sm:p-2 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
       <div className="flex items-center justify-between w-full mb-0.5">
         <span className="text-[14px] sm:text-[16px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
         <div 
@@ -30,9 +30,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   );
 
   const Section = ({ title, children }: { title: string, children?: React.ReactNode }) => (
-    <div className="w-full space-y-1 sm:space-y-2 pt-1 sm:pt-4">
-      <h3 className="text-[9px] sm:text-[10px] font-black text-zinc-900 uppercase tracking-[0.5em] px-2 border-l-[3px] border-black ml-1">{title}</h3>
-      <div className="space-y-1.5 sm:space-y-3">{children}</div>
+    <div className="w-full p-2 sm:p-3">
+      <h3 className="text-[9px] sm:text-[10px] font-black text-zinc-900 uppercase tracking-[0.5em] px-2 border-l-[3px] border-black ml-1 mb-2 sm:mb-3">{title}</h3>
+      <div className="space-y-1 sm:space-y-2">{children}</div>
     </div>
   );
 
@@ -43,7 +43,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
         <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[7px] sm:text-[9px] mt-0.5">Zen • {context}</p>
       </header>
 
-      <main className="flex-grow space-y-4 sm:space-y-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
+      <main className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
         {(context === 'global' || context === 'sudoku') && (
           <Section title="Sudoku">
             <Toggle label="Mistakes" desc="Red flags for errors." value={settings.sudoku.highlightMistakes} onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightMistakes: v } })} />
@@ -63,6 +63,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
             <Toggle label="Vibrate" desc="Tactile feel." value={settings.colordle.vibrationFeedback} onChange={(v) => onSettingsChange({ colordle: { ...settings.colordle, vibrationFeedback: v } })} />
           </Section>
         )}
+        <Section title="History">
+            <Toggle label="Click Action" desc="Clicking saved game resumes (on) or shows stats (off)." value={settings.global.historyClickResumes} onChange={(v) => onSettingsChange({ global: { ...settings.global, historyClickResumes: v } })} />
+        </Section>
         <Section title="Core">
           <Toggle label="Motion" desc="Animations." value={settings.global.animations} onChange={(v) => onSettingsChange({ global: { ...settings.global, animations: v } })} />
           <Toggle label="Haptics" desc="Device pulses." value={settings.global.haptics} onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} />

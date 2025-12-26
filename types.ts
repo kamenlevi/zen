@@ -114,5 +114,6 @@ export interface GameSettings {
     animations: boolean;
     sounds: boolean;
     haptics: boolean;
+    historyClickResumes: boolean;
   };
 }
