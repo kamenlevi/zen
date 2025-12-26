@@ -100,5 +100,12 @@ export const VERSION_HISTORY = [
             "Fixed 'question mark' placeholder placement on Colordle and Geodle to be correctly centered.",
             "Ensured the textarea in NotesEditor automatically gains focus when the editor opens."
         ]
+    },
+    {
+        version: "1.3.8",
+        date: "December 26, 2025",
+        changes: [
+            "Implemented aggressive focus retention for NotesEditor textarea to ensure continuous typing without interruption."
+        ]
     }
 ];
