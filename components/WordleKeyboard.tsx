@@ -46,7 +46,7 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
         key={key}
         onPointerDown={handleAction}
         className={`
-          flex-1 h-[66px] sm:h-18 flex items-center justify-center rounded-lg font-black transition-all active:scale-[0.9] border touch-manipulation
+          flex-1 h-[66px] sm:h-18 flex items-center justify-center rounded-lg font-black transition-all border touch-manipulation
           ${isDelete || isEnter ? 'flex-[1.6] text-[10px] sm:text-[12px] tracking-widest' : 'text-[17px] sm:text-xl'}
           ${colorClasses}
           ${validating && isEnter ? 'opacity-50' : ''}

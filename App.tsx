@@ -262,7 +262,7 @@ const App: React.FC = () => {
       return;
     }
     if (view.includes('-game')) {
-      if (activeGameType) { setView(`${activeGameType}-menu` as View); setIsPaused(false); }
+      if (activeGameType) { setView(`${activeGameType}-menu` as View); setIsPaused(false); setDifficulty(null); }
       else { setView('hub'); }
       return;
     }
@@ -390,7 +390,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="app-container relative bg-zinc-50 overflow-hidden font-sans safe-pt safe-pb">
+    <div className="app-container relative bg-zinc-50 overflow-auto font-sans safe-pt safe-pb">
       <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-6 overflow-y-auto no-scrollbar">
         <h1 className="text-[min(12vw,64px)] font-black tracking-tighter text-black leading-none mb-4 drop-shadow-sm">ZEN</h1>
         <div className="w-full max-w-xs space-y-3">
@@ -465,7 +465,7 @@ const App: React.FC = () => {
 
               <div className="flex-shrink-0 w-full">
                 {view === 'sudoku-game' && <footer className="px-4 pb-10 bg-white border-t border-zinc-100 pt-6 ios-bottom-bar shadow-sm"><StaticNumberPad onNumberSelect={handleSudokuInput} onErase={() => handleSudokuInput(0)} onUndo={handleSudokuUndo} onRedo={handleSudokuRedo} onReset={handleSudokuReset} show={!!selectedCell} canUndo={sudokuHistory.length > 0} canRedo={sudokuRedoStack.length > 0} /></footer>}
-                {view === 'wordle-game' && !isWordleLoading && <div className="pb-12 bg-white border-t border-zinc-100 pt-5 ios-bottom-bar shadow-sm"><WordleKeyboard onKey={k => setCurrentGuess(p => p + k)} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className="pb-12 bg-white border-t border-zinc-100 pt-5 ios-bottom-bar shadow-sm"><WordleKeyboard onKey={k => { if (currentGuess.length < 5) setCurrentGuess(p => p + k); }} onDelete={() => setCurrentGuess(p => p.slice(0, -1))} onEnter={handleWordleSubmit} keyStatus={keyStatus} validating={isWordleValidating} /></div>}
                 {view === 'colordle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><ColordleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleColordleSubmit} onGetHint={async () => { setIsColorHintLoading(true); const h = await getColorHint(targetColorName); setColordleHint(h); setIsColorHintLoading(false); }} isLoading={isColorLoading} isHintLoading={isColorHintLoading} currentHint={colordleHint} /></div>}
                 {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
               </div>
