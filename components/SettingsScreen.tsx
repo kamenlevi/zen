@@ -37,7 +37,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   );
 
   return (
-    <div className="h-full flex flex-col p-4 sm:p-8 font-sans max-w-xl mx-auto bg-zinc-50/20">
+    <div className="h-full flex flex-col p-4 sm:p-8 font-sans max-w-3xl mx-auto bg-zinc-50/20">
       <header className="py-1 flex-shrink-0 border-b border-zinc-50 mb-2 sm:mb-4">
         <h1 className="text-xl sm:text-2xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
         <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[7px] sm:text-[9px] mt-0.5">Zen • {context}</p>

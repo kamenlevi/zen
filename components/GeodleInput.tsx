@@ -37,6 +37,12 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
+      inputRef.current.focus();
+    }
+  }, [isLoading, isHintLoading, value]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onGuess(value);
@@ -66,6 +72,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
             autoComplete="off"
             autoFocus
           />
+          <p className="text-[10px] text-zinc-500 mt-2 text-center">Distance calculated from geographical centers.</p>
         </div>
         
         <div className="flex gap-3">

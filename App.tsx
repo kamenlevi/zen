@@ -487,7 +487,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} />}
+          {view === 'history' && <HistoryScreen key={activeGameType + view} category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} />}
           {view === 'settings' && <SettingsScreen context={activeGameType || 'global'} settings={settings} onSettingsChange={handleSettingsChange} onBack={handleBack} />}
 
           {view.includes('-game') && (
@@ -496,29 +496,28 @@ const App: React.FC = () => {
                 <button onPointerDown={handleBack} className="w-14 h-14 bg-black rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl">
                   <ChevronLeftIcon className="w-8 h-8 text-white" />
                 </button>
-                <div className="flex flex-col items-center">
+                <div className="flex items-center"> {/* Group Pause and Notes buttons */}
+                  <button onPointerDown={() => setIsPaused(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm">
+                    <PauseIcon className="w-8 h-8 text-black" />
+                  </button>
+                  <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
+                    <NoteIcon className="w-8 h-8 text-black" />
+                  </button>
+                </div>
+              </header>
+
+              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-2">
+                <div className="flex flex-col items-center mb-4"> {/* Moved game info here */}
                   <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
                   <div className="flex items-center space-x-2 mt-1">
                     <span className="text-[10px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
                     {settings.sudoku.timerVisible && <div className="flex items-center space-x-1 text-zinc-900 ml-2"><ClockIcon className="w-3.5 h-3.5 text-black opacity-30" /><span className="text-[12px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>}
                   </div>
                 </div>
-                <button onPointerDown={() => setIsPaused(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm">
-                  <PauseIcon className="w-8 h-8 text-black" />
-                </button>
-                <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
-                  <NoteIcon className="w-8 h-8 text-black" />
-                </button>
-                <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
-                  <NoteIcon className="w-8 h-8 text-black" />
-                </button>
-              </header>
-
-              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-2">
                 {isWordleLoading && <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/95 backdrop-blur-md animate-fade-in"><div className="w-10 h-10 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-4"></div><p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Loading Session</p></div>}
                 {view === 'sudoku-game' && boardState && <div className="w-full scale-[0.98] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
-                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex-grow flex items-center justify-center`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
-                {view === 'colordle-game' && <div className={`w-full flex flex-col items-center gap-6 ${colordleShakeTrigger > 0 ? 'animate-shake' : ''}`}><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} shakeTrigger={colordleShakeTrigger} /></div>}
+                {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex flex-col`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
+                {view === 'colordle-game' && <div className={`w-full flex flex-col ${colordleShakeTrigger > 0 ? 'animate-shake' : ''}`}><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><ColordleBoard guesses={colordleGuesses} shakeTrigger={colordleShakeTrigger} /></div>}
                 {view === 'geodle-game' && <div className="w-full flex flex-col items-center gap-6"><div className="w-28 h-28 rounded-full bg-zinc-50 flex items-center justify-center text-4xl font-black text-zinc-200 border-[6px] border-white shadow-xl">?</div><GeodleBoard guesses={geodleGuesses} /></div>}
               </main>
 

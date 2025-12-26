@@ -25,6 +25,12 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
+    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
+      inputRef.current.focus();
+    }
+  }, [isLoading, isHintLoading, value]);
+
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -36,6 +42,12 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
+      inputRef.current.focus();
+    }
+  }, [isLoading, isHintLoading, value]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

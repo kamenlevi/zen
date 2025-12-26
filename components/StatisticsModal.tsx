@@ -87,6 +87,15 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
                   <p className="text-2xl font-black text-white tracking-widest uppercase">{targetSolution}</p>
                 </div>
               )}
+              
+              {!isCompleted && onBringToGame && (
+                <button 
+                  onClick={() => onBringToGame(game as InProgressGame)} 
+                  className="w-full bg-zinc-100 text-zinc-800 py-4 rounded-xl font-black uppercase text-[11px] tracking-[0.3em] shadow-sm active:scale-95 transition-all mb-4"
+                >
+                  Resume Game
+                </button>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
@@ -131,15 +140,7 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBrin
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4">
-          {!isCompleted && onBringToGame && (
-            <button 
-              onClick={() => onBringToGame(game as InProgressGame)} 
-              className="w-full bg-emerald-600 text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all"
-            >
-              Resume Game
-            </button>
-          )}
+        <div className="mt-12">
           <button onClick={onClose} className="w-full bg-black text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">
             Back to History
           </button>
