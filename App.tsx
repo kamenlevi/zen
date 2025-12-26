@@ -380,25 +380,25 @@ const App: React.FC = () => {
   return (
     <div className="app-container relative bg-zinc-50 overflow-hidden font-sans safe-pt safe-pb">
       {/* Background Hub visible during swipe */}
-      <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8">
-        <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-10 drop-shadow-sm">ZEN</h1>
+      <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 overflow-y-auto no-scrollbar">
+        <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-6 mt-4 drop-shadow-sm">ZEN</h1>
         <div className="w-full max-w-xs space-y-4">
           <HubButton type="sudoku" />
           <HubButton type="wordle" />
           <HubButton type="colordle" />
           <HubButton type="geodle" />
           
-          <div className="flex gap-3 pt-6">
+          <div className="flex gap-3 pt-4 pb-8">
             <button 
               onClick={() => { setView('history'); }} 
-              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group"
+              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group pointer-events-auto"
             >
               <ClockIcon className="w-4 h-4 text-black" />
               <span className="text-[10px] font-black uppercase tracking-widest text-black">History</span>
             </button>
             <button 
               onClick={() => { setView('settings'); }} 
-              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group"
+              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group pointer-events-auto"
             >
               <SettingsIcon className="w-4 h-4 text-black" />
               <span className="text-[10px] font-black uppercase tracking-widest text-black">Settings</span>

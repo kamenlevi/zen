@@ -1,5 +1,6 @@
+
 import { Difficulty, WordleStatus } from "../types.ts";
-import { COMMON_WORDS, OBSCURE_WORDS } from "./wordBank.ts";
+import { COMMON_WORDS, OBSCURE_WORDS, DICTIONARY } from "./wordBank.ts";
 
 /**
  * Filter words by difficulty logic based on commonality and character complexity.
@@ -7,7 +8,7 @@ import { COMMON_WORDS, OBSCURE_WORDS } from "./wordBank.ts";
 function getWordsByDifficulty(difficulty: Difficulty): string[] {
   switch (difficulty) {
     case Difficulty.Easy:
-      // High frequency common words (e.g. THE, AND, but 5 letters)
+      // High frequency common words
       return ["STARE", "PLANT", "CRANE", "AUDIO", "READY", "LEARN", "TABLE", "BREAD", "HEART", "MUSIC"];
     case Difficulty.Medium:
       // Common words with 5 unique letters
@@ -19,8 +20,8 @@ function getWordsByDifficulty(difficulty: Difficulty): string[] {
       // Tricky common words or rare valid words
       return COMMON_WORDS.filter(w => "JKQXZ".split("").some(c => w.includes(c)));
     case Difficulty.Master:
-      // The hardest obscure words
-      return OBSCURE_WORDS;
+      // The hardest obscure words from the user dictionary
+      return DICTIONARY.slice(0, 500).map(w => w.toUpperCase());
     default:
       return COMMON_WORDS;
   }
@@ -32,12 +33,15 @@ function getWordsByDifficulty(difficulty: Difficulty): string[] {
 export async function generateDynamicWord(difficulty: Difficulty): Promise<string> {
   const pool = getWordsByDifficulty(difficulty);
   const word = pool[Math.floor(Math.random() * pool.length)];
-  return word || "ZENLY";
+  return word?.toUpperCase() || "ZENLY";
 }
 
 export async function isValidWord(word: string): Promise<boolean> {
   const w = word.trim().toUpperCase();
-  return COMMON_WORDS.includes(w) || OBSCURE_WORDS.includes(w);
+  // Check against answer pools and the massive dictionary provided
+  return COMMON_WORDS.includes(w) || 
+         OBSCURE_WORDS.includes(w) || 
+         DICTIONARY.some(d => d.toUpperCase() === w);
 }
 
 export function getWordFeedback(guess: string, target: string): WordleStatus[] {
