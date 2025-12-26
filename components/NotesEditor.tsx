@@ -7,7 +7,7 @@ interface NotesEditorProps {
   onClose: () => void;
 }
 
-const NotesEditor: React.FC<NotesEditorProps> = ({ currentNotes, onSave, onClose }) => {
+const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ currentNotes, onSave, onClose }, ref) => {
   const [notes, setNotes] = useState(currentNotes);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const NotesEditor: React.FC<NotesEditorProps> = ({ currentNotes, onSave, onClose
         </header>
 
         <textarea
-          autoFocus // Added autoFocus
+          ref={ref} // Use the forwarded ref here
           className="flex-grow w-full h-40 bg-zinc-50 border border-zinc-200 rounded-2xl p-4 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-black resize-none"
           placeholder="Write your notes here..."
           value={notes}

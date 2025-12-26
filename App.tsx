@@ -93,7 +93,8 @@ const App: React.FC = () => {
   const touchStartY = useRef<number | null>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const colordleInputRef = useRef<HTMLInputElement>(null); // New ref
-  const geodleInputRef = useRef<HTMLInputElement>(null); // New ref // New ref for game container
+  const geodleInputRef = useRef<HTMLInputElement>(null);
+  const notesEditorRef = useRef<HTMLTextAreaElement>(null); // New ref for NotesEditor // New ref // New ref for game container
 
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
@@ -102,8 +103,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Centralized focus management
-    if (!isPaused && !showNotesEditor && !selectedHistoryGame) {
-      if (view === 'wordle-game' && gameContainerRef.current) {
+    if (!isPaused && !selectedHistoryGame) { // Notes editor also takes focus, so it's a separate condition
+      if (showNotesEditor && notesEditorRef.current) {
+        notesEditorRef.current.focus();
+      } else if (view === 'wordle-game' && gameContainerRef.current) {
         gameContainerRef.current.focus();
       } else if (view === 'colordle-game' && colordleInputRef.current) {
         colordleInputRef.current.focus();
@@ -568,7 +571,7 @@ const App: React.FC = () => {
         </div>
       )}
       {selectedHistoryGame && <StatisticsModal game={selectedHistoryGame} onClose={() => setSelectedHistoryGame(null)} onBringToGame={handleContinueGame} />}
-      {showNotesEditor && <NotesEditor currentNotes={currentNotes} onSave={setCurrentNotes} onClose={() => setShowNotesEditor(false)} />}
+      {showNotesEditor && <NotesEditor ref={notesEditorRef} currentNotes={currentNotes} onSave={setCurrentNotes} onClose={() => setShowNotesEditor(false)} />}
     </div>
   );
 };
