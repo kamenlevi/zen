@@ -63,6 +63,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <Toggle label="Motion" desc="Animations." value={settings.global.animations} onChange={(v) => onSettingsChange({ global: { ...settings.global, animations: v } })} />
           <Toggle label="Haptics" desc="Device pulses." value={settings.global.haptics} onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} />
         </Section>
+        <Section title="About">
+            <p className="text-[12px] sm:text-[14px] font-bold text-zinc-500 px-3">Version: 1.0.0</p>
+        </Section>
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 p-5 sm:p-8 bg-gradient-to-t from-white via-white/95 to-transparent pt-8">

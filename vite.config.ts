@@ -12,8 +12,16 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     base: '/zen/',
     define: {
-      // This makes process.env.API_KEY available in your client-side code
       'process.env.API_KEY': JSON.stringify(env.API_KEY)
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+          },
+        },
+      },
     }
   }
 })

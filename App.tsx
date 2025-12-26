@@ -9,6 +9,7 @@ import { generateDynamicWord, getWordFeedback, isValidWord } from './services/wo
 import { getRandomNicheColor, getSemanticCloseness, getColorHint } from './services/colorService.ts';
 import { getRandomCountry, validateAndGetLocation, getGeoHint } from './services/geoService.ts';
 import { formatTime } from './utils/time.ts';
+import { getWordDefinition } from './utils/word.ts';
 import Board from './components/Board.tsx';
 import StaticNumberPad from './components/StaticNumberPad.tsx';
 import WordleBoard from './components/WordleBoard.tsx';
@@ -22,6 +23,7 @@ import PauseMenu from './components/PauseMenu.tsx';
 import HistoryScreen from './components/HistoryScreen.tsx';
 import StatisticsModal from './components/StatisticsModal.tsx';
 import SettingsScreen from './components/SettingsScreen.tsx';
+import CompletionMenu from './components/CompletionMenu.tsx';
 import { ClockIcon, PauseIcon, ChevronLeftIcon, SettingsIcon } from './components/icons.tsx';
 
 type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history' | 'settings';
@@ -206,8 +208,12 @@ const App: React.FC = () => {
       setMoveHistory(nextHistory);
       const win = wordToValidate === targetWord;
       if (win || newGuesses.length >= MAX_WORDLE_GUESSES) {
+        let explanation: string | undefined;
+        if (navigator.onLine) {
+            explanation = await getWordDefinition(targetWord);
+        }
         setIsWordleValidating(false);
-        setTimeout(() => handleGameOver(win, nextHistory), 800);
+        setTimeout(() => handleGameOver(win, nextHistory, explanation), 800);
       } else {
         setIsWordleValidating(false);
       }
@@ -355,7 +361,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { handleBack(); return; }
+      if (e.key === 'Escape') {
+        if (view.includes('-game') && !isWon && !isLost) {
+          setIsPaused(true);
+          return;
+        }
+        handleBack();
+        return;
+      }
       if (isPaused || isWon || isLost || isWordleValidating) return;
       if (view === 'sudoku-game') {
         if (e.key >= '1' && e.key <= '9') handleSudokuInput(parseInt(e.key));
@@ -383,7 +396,7 @@ const App: React.FC = () => {
   const HubButton = ({ type }: { type: string }) => (
     <button 
       onPointerDown={() => { setActiveGameType(type as any); setView(`${type}-menu` as any); setDifficulty(null); }}
-      className={`w-full py-4 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 bg-black text-white border border-zinc-100 shadow-xl group`}
+      className={`w-full py-4 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-98 active:shadow-inner bg-black text-white border border-zinc-100 shadow-xl group`}
     >
       <span className="text-[11px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 transition-all">{type}</span>
     </button>
@@ -471,6 +484,15 @@ const App: React.FC = () => {
               </div>
 
               {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} />}
+              {(isWon || isLost) && !isPaused && (
+                <CompletionMenu
+                  gameType={activeGameType!}
+                  isWon={isWon}
+                  elapsedTime={elapsedTime}
+                  onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); }}
+                  onRestart={() => resetGameState(`${activeGameType}-game` as View)}
+                />
+              )}
             </div>
           )}
         </div>

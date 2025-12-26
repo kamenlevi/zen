@@ -1,8 +1,9 @@
 
 import { Difficulty, WordleStatus } from "../types.ts";
+import { COMMON_WORDS, OBSCURE_WORDS, DICTIONARY } from "./wordBank.ts";
 import { WORDLE_WORDS } from "./wordleWordBank.ts";
 
-const ALL_WORDS_5 = Array.from(new Set(WORDLE_WORDS))
+const ALL_WORDS_5 = Array.from(new Set([...COMMON_WORDS, ...OBSCURE_WORDS, ...DICTIONARY, ...WORDLE_WORDS]))
   .map(w => w.trim().toUpperCase())
   .filter(w => w.length === 5);
 

@@ -46,7 +46,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <button 
         key={game.id} 
         onPointerDown={() => isComplete ? onOpenStats(game) : onContinueGame(game as InProgressGame)}
-        className={`group w-full flex flex-col p-6 sm:p-8 bg-white border border-zinc-100 rounded-[3rem] sm:rounded-[4rem] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-2xl text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
+        className={`group w-full flex flex-col p-6 sm:p-8 bg-white border border-zinc-100 rounded-[3rem] sm:rounded-[4rem] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
       >
         <div className="aspect-square w-full mb-8 sm:mb-10 overflow-hidden rounded-[2.5rem] sm:rounded-[3.2rem] shadow-inner bg-white border border-zinc-100 relative pointer-events-none">
           {isSudoku ? (
@@ -65,17 +65,17 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         
         <div className="px-2 w-full flex flex-col gap-3 sm:gap-4 pointer-events-none">
           <div className="flex justify-between items-center">
-            <h4 className="text-[17px] sm:text-[20px] font-black uppercase text-zinc-900 leading-none truncate flex-grow mr-2">
+            <h4 className="text-xl sm:text-2xl font-black uppercase text-zinc-900 leading-none truncate flex-grow mr-2">
                {mainLabel}
             </h4>
             {!isComplete && <div className="w-4 h-4 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>}
           </div>
           
           <div className="flex justify-between items-center opacity-70">
-            <p className="text-[10px] sm:text-[12px] font-bold text-zinc-500 uppercase tracking-tighter">
+            <p className="text-xs sm:text-sm font-bold text-zinc-500 uppercase tracking-tighter">
                {isComplete ? game.difficulty : 'ACTIVE JOURNEY'}
             </p>
-            <span className="text-[10px] sm:text-[12px] font-black uppercase tracking-widest text-zinc-900">
+            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-zinc-900">
               {isComplete ? 'View' : 'Resume'}
             </span>
           </div>
@@ -86,14 +86,14 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
 
   return (
     <div className="h-full flex flex-col p-5 sm:p-12 font-sans max-w-xl mx-auto bg-white">
-      <header className="py-3 flex-shrink-0 border-b border-zinc-50 mb-6 sm:mb-16">
-        <h1 className="text-2xl sm:text-5xl font-black tracking-tighter text-zinc-900 leading-none uppercase">History</h1>
+      <header className="py-3 flex-shrink-0 border-b border-zinc-50 mb-10 sm:mb-20">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tighter text-zinc-900 leading-none uppercase mb-6">History</h1>
         
-        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-1.5 rounded-3xl mt-6 sm:mt-16 w-full shadow-inner gap-3 sm:gap-6">
+        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-1.5 rounded-3xl w-full shadow-inner gap-2 sm:gap-4">
           {(['sudoku', 'wordle', 'colordle', 'geodle'] as const).map(t => (
             <button 
               key={t} onPointerDown={() => setCategory(t)}
-              className={`py-4 sm:py-8 text-[9px] sm:text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all ${category === t ? 'bg-zinc-900 text-white shadow-2xl scale-[1.05]' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`py-3 sm:py-6 text-[10px] sm:text-[12px] font-black uppercase tracking-widest rounded-2xl transition-all ${category === t ? 'bg-zinc-900 text-white shadow-lg scale-[1.03]' : 'text-zinc-400 hover:text-zinc-600'}`}
             >
               {t}
             </button>
@@ -101,7 +101,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto no-scrollbar space-y-20 sm:space-y-40 pb-72">
+      <main className="flex-grow overflow-y-auto no-scrollbar space-y-24 sm:space-y-48 pb-72">
         {inProgress.length > 0 && (
           <div>
             <h3 className="text-[11px] sm:text-[13px] font-black text-zinc-300 uppercase tracking-[0.6em] mb-10 sm:mb-20 px-6">Active Sprints</h3>
@@ -121,8 +121,8 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-10 sm:p-16 bg-gradient-to-t from-white via-white/95 to-transparent pt-32 pointer-events-none">
-        <button onPointerDown={onBack} className="pointer-events-auto w-full max-w-xs mx-auto block bg-black text-white font-black py-5 sm:py-10 rounded-full shadow-2xl uppercase tracking-[0.5em] text-[11px] sm:text-[14px] active:scale-95 transition-all">Home Page</button>
+      <footer className="mt-12 text-center">
+        <button onPointerDown={onBack} className="w-full max-w-xs mx-auto bg-black text-white font-black py-5 rounded-full shadow-lg uppercase tracking-[0.5em] text-[11px] active:scale-95 transition-all">Home Page</button>
       </footer>
     </div>
   );
