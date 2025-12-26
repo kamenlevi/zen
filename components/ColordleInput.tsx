@@ -28,7 +28,7 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
     if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
       inputRef.current.focus();
     }
-  }, [isLoading, isHintLoading, value]);
+  }, [isLoading, isHintLoading]); // Removed 'value' from dependency array
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -43,12 +43,6 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
-      inputRef.current.focus();
-    }
-  }, [isLoading, isHintLoading, value]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onGuess(value);
@@ -58,8 +52,8 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
     <div className="w-full bg-white/98 backdrop-blur-3xl border-t border-zinc-200 p-5 pb-10 sm:p-7 sm:pb-12 rounded-t-[3rem] shadow-[0_-20px_50px_rgba(0,0,0,0.1)] flex flex-col items-center gap-5">
       {currentHint && (
         <div className="w-full max-w-sm animate-fade-in">
-          <div className="bg-zinc-50 border border-zinc-100 p-4 px-6 rounded-full flex items-start gap-4 shadow-inner">
-            <BulbIcon className="w-5 h-5 text-zinc-400 mt-0.5 flex-shrink-0" />
+          <div className="bg-zinc-50 border border-zinc-100 p-4 px-6 rounded-full flex items-center gap-4 shadow-inner">
+            <BulbIcon className="w-5 h-5 text-zinc-400 flex-shrink-0" />
             <p className="text-[12px] font-medium italic text-zinc-600 leading-tight">"{currentHint}"</p>
           </div>
         </div>
@@ -77,6 +71,8 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             disabled={isLoading || isHintLoading}
             autoComplete="off"
             autoFocus
+            inputMode="text"
+            enterKeyHint="go"
           />
         </div>
         

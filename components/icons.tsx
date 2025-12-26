@@ -71,7 +71,7 @@ export const NoteIcon: React.FC<{ className?: string }> = ({ className }) => (
 
 export const BulbIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className || "h-6 w-6"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h2M4 13v4a2 2 0 002 2h2m8-13h2a2 2 0 012 2v2m-3 9v4a2 2 0 002 2h2a2 2 0 002-2v-4m-10 4h.01M12 12a4 4 0 110-8 4 4 0 010 8z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 21h6m-3-3v3m-3-3H6a2 2 0 01-2-2V6a2 2 0 012-2h6.03C14.73 3.16 16.51 3 18 3a4 4 0 010 8c-1.51 0-3.27.16-4.97 1h-1.03v-3M18 10a1 1 0 100-2 1 1 0 000 2z" />
   </svg>
 );
 

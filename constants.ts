@@ -52,5 +52,20 @@ export const VERSION_HISTORY = [
         changes: [
             "Version bump."
         ]
+    },
+    {
+        version: "1.3.3",
+        date: "December 26, 2025",
+        changes: [
+            "Implemented ESC key functionality in Pause Menu to resume game.",
+            "Adjusted hint icon alignment in ColordleInput and GeodleInput.",
+            "Redesigned the BulbIcon for a simpler appearance.",
+            "Moved game info (title, difficulty, timer) to the top-center in game view.",
+            "Modified CompletionMenu to explicitly show success/failure status and the actual solution.",
+            "Removed redundant overflow-y-auto from HistoryScreen's main tag to fix mobile scrolling.",
+            "Increased general size and improved appearance of the Settings tab.",
+            "Adjusted Wordle letter box sizes to fit better on mobile screens.",
+            "Improved mobile typing experience for Colordle and Geodle by optimizing autofocus and adding inputmode/enterKeyHint attributes."
+        ]
     }
 ];

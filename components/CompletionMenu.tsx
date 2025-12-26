@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GameType } from '../types';
+import { GameType, Grid } from '../types';
 
 interface CompletionMenuProps {
     gameType: GameType;
@@ -10,6 +10,7 @@ interface CompletionMenuProps {
     onRestart: () => void;
     explanation?: string;
     notes?: string;
+    solution?: string | Grid | null; // Added solution prop
 }
 
 const CompletionMenu: React.FC<CompletionMenuProps> = ({
@@ -19,7 +20,8 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
     onExit,
     onRestart,
     explanation,
-    notes
+    notes,
+    solution // Destructured solution prop
 }) => {
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -36,6 +38,12 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
                 <p className="text-sm uppercase font-bold tracking-widest text-zinc-500">
                     {gameType} - {isWon ? 'Completed' : 'Lost'} in {formatTime(elapsedTime)}
                 </p>
+                {/* Display solution for non-Sudoku games */}
+                {solution && typeof solution === 'string' && (gameType !== 'sudoku') && (
+                    <p className="text-md uppercase font-black tracking-wider text-black mt-2">
+                        Solution: {solution}
+                    </p>
+                )}
                 {explanation && (
                     <p className="text-xs italic text-zinc-500 mt-2">
                         "{explanation}"

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PlayIcon, ResetIcon, XIcon, ChevronLeftIcon } from './icons.tsx';
 
 interface PauseMenuProps {
@@ -11,6 +11,20 @@ interface PauseMenuProps {
 }
 
 const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, gameType, notes }) => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onResume();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onResume]);
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 animate-fade-in">
       {/* Backdrop */}

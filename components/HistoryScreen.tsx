@@ -101,7 +101,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto no-scrollbar space-y-24 sm:space-y-48 pb-72">
+      <main className="flex-grow space-y-24 sm:space-y-48 pb-72">
         {inProgress.length > 0 && (
           <div>
             <h3 className="text-[11px] sm:text-[13px] font-black text-zinc-300 uppercase tracking-[0.6em] mb-10 sm:mb-20 px-6">Active Sprints</h3>

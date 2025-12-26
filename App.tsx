@@ -80,6 +80,7 @@ const App: React.FC = () => {
   const [isLost, setIsLost] = useState(false);
   const [currentNotes, setCurrentNotes] = useState<string>('');
   const [completionExplanation, setCompletionExplanation] = useState<string | undefined>(undefined);
+  const [completedGameSolution, setCompletedGameSolution] = useState<string | Grid | null>(null); // New state variable
   const [isPaused, setIsPaused] = useState(false);
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -135,6 +136,7 @@ const App: React.FC = () => {
     setIsWon(won);
     setIsLost(!won);
     setCompletionExplanation(explanation);
+    setCompletedGameSolution(activeGameType === 'sudoku' ? solution! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry))); // Set the solution state here
     const finished: CompletedGame = { 
       id: `${activeGameType}-${difficulty}-${startTime}`, 
       gameType: activeGameType!, 
@@ -506,14 +508,15 @@ const App: React.FC = () => {
                 </div>
               </header>
 
-              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-2">
-                <div className="flex flex-col items-center mb-4"> {/* Moved game info here */}
-                  <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-[10px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
-                    {settings.sudoku.timerVisible && <div className="flex items-center space-x-1 text-zinc-900 ml-2"><ClockIcon className="w-3.5 h-3.5 text-black opacity-30" /><span className="text-[12px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>}
-                  </div>
+              <div className="flex flex-col items-center mt-4 mb-4"> {/* Moved game info here */}
+                <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className="text-[10px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
+                  {settings.sudoku.timerVisible && <div className="flex items-center space-x-1 text-zinc-900 ml-2"><ClockIcon className="w-3.5 h-3.5 text-black opacity-30" /><span className="text-[12px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>}
                 </div>
+              </div>
+
+              <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-2">
                 {isWordleLoading && <div className="absolute inset-0 flex flex-col items-center justify-center z-[80] bg-white/95 backdrop-blur-md animate-fade-in"><div className="w-10 h-10 border-4 border-zinc-100 border-t-black rounded-full animate-spin mb-4"></div><p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Loading Session</p></div>}
                 {view === 'sudoku-game' && boardState && <div className="w-full scale-[0.98] sm:scale-100"><Board boardState={boardState} selectedCell={selectedCell} onCellSelect={(r, c) => setSelectedCell({row: r, col: c})} highlightedValue={highlightedValue} /></div>}
                 {view === 'wordle-game' && !isWordleLoading && <div className={`${wordleShakeTrigger > 0 ? 'animate-shake' : ''} w-full flex flex-col`}><WordleBoard guesses={guesses} results={wordleResults} currentGuess={currentGuess} wordLength={5} maxGuesses={MAX_WORDLE_GUESSES} /></div>}
@@ -534,10 +537,11 @@ const App: React.FC = () => {
                   gameType={activeGameType!}
                   isWon={isWon}
                   elapsedTime={elapsedTime}
-                  onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); setCompletionExplanation(undefined); }}
+                  onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); setCompletionExplanation(undefined); setCompletedGameSolution(null); }} // Clear solution state on exit
                   onRestart={() => resetGameState(`${activeGameType}-game` as View)}
                   explanation={completionExplanation}
                   notes={currentNotes}
+                  solution={completedGameSolution} // Pass the new solution prop
                 />
               )}
             </div>

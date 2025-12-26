@@ -211,6 +211,7 @@ export const COLORS_LIST = [
   { "name": "Ocean Blue", "hex": "#4F42B5" },
   { "name": "Ruby Red", "hex": "#E0115F" },
   { "name": "Emerald Green", "hex": "#50C878" },
-  { "name": "Golden Orange", "hex": "#F7A823" },
+  { "name": "Golden Orange", "hex": "#F7A823" }
+];
 
 export { COUNTRIES_DATA } from './countryData';

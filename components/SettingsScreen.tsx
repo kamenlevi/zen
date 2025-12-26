@@ -15,35 +15,35 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   const [showVersionHistory, setShowVersionHistory] = useState(false);
 
   const Toggle = ({ label, desc, value, onChange }: { label: string, desc: string, value: boolean, onChange: (v: boolean) => void }) => (
-    <label className="flex flex-col p-1.5 sm:p-2 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
-      <div className="flex items-center justify-between w-full mb-0.5">
-        <span className="text-[14px] sm:text-[16px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
+    <label className="flex flex-col p-2 sm:p-3 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
+      <div className="flex items-center justify-between w-full mb-1">
+        <span className="text-[15px] sm:text-[17px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
         <div 
           onPointerDown={(e) => { e.preventDefault(); onChange(!value); }}
-          className={`w-10 h-5 sm:w-11 sm:h-5.5 rounded-full transition-colors relative ${value ? 'bg-black' : 'bg-zinc-200'}`}
+          className={`w-12 h-6 sm:w-14 sm:h-7 rounded-full transition-colors relative ${value ? 'bg-black' : 'bg-zinc-200'}`}
         >
-          <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform ${value ? 'translate-x-5 sm:translate-x-5.5' : ''}`}></div>
+          <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${value ? 'translate-x-6 sm:translate-x-7.5' : ''}`}></div>
         </div>
       </div>
-      <p className="text-[9px] sm:text-[11px] text-zinc-600 font-medium leading-tight pr-2">{desc}</p>
+      <p className="text-[10px] sm:text-[12px] text-zinc-600 font-medium leading-tight pr-2">{desc}</p>
     </label>
   );
 
   const Section = ({ title, children }: { title: string, children?: React.ReactNode }) => (
-    <div className="w-full p-2 sm:p-3">
-      <h3 className="text-[9px] sm:text-[10px] font-black text-zinc-900 uppercase tracking-[0.5em] px-2 border-l-[3px] border-black ml-1 mb-2 sm:mb-3">{title}</h3>
-      <div className="space-y-1 sm:space-y-2">{children}</div>
+    <div className="w-full p-3 sm:p-4">
+      <h3 className="text-[10px] sm:text-[11px] font-black text-zinc-900 uppercase tracking-[0.5em] px-2 border-l-[3px] border-black ml-1 mb-2 sm:mb-4">{title}</h3>
+      <div className="space-y-2 sm:space-y-3">{children}</div>
     </div>
   );
 
   return (
-    <div className="h-full flex flex-col p-4 sm:p-8 font-sans max-w-3xl mx-auto bg-zinc-50/20">
-      <header className="py-1 flex-shrink-0 border-b border-zinc-50 mb-2 sm:mb-4">
-        <h1 className="text-xl sm:text-2xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
-        <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[7px] sm:text-[9px] mt-0.5">Zen • {context}</p>
+    <div className="h-full flex flex-col p-6 sm:p-12 font-sans mx-auto bg-zinc-50/20">
+      <header className="py-2 flex-shrink-0 border-b border-zinc-50 mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
+        <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[8px] sm:text-[10px] mt-0.5">Zen • {context}</p>
       </header>
 
-      <main className="flex-grow space-y-4 sm:space-y-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
+      <main className="flex-grow space-y-6 sm:space-y-10 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
         {(context === 'global' || context === 'sudoku') && (
           <Section title="Sudoku">
             <Toggle label="Mistakes" desc="Red flags for errors." value={settings.sudoku.highlightMistakes} onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightMistakes: v } })} />
