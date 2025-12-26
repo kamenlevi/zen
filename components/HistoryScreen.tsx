@@ -89,7 +89,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <header className="py-4 sm:py-8 flex-shrink-0 border-b border-zinc-50 mb-8 sm:mb-12">
         <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-zinc-900 leading-none uppercase">History</h1>
         
-        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl mt-6 sm:mt-12 w-full shadow-inner gap-2 sm:gap-4">
+        <div className="grid grid-cols-4 bg-zinc-50 border border-zinc-100 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl mt-6 sm:mt-12 w-full shadow-inner gap-3 sm:gap-4">
           {(['sudoku', 'wordle', 'colordle', 'geodle'] as const).map(t => (
             <button 
               key={t} onClick={() => setCategory(t)}

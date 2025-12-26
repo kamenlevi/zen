@@ -69,7 +69,7 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
       <div className="flex gap-1 justify-center w-full">
         {ROW_1.map(k => renderKey(k))}
       </div>
-      <div className="flex gap-1 justify-center w-[92%] mx-auto">
+      <div className="flex gap-1 justify-center w-[100%] mx-auto">
         {ROW_2.map(k => renderKey(k))}
       </div>
       <div className="flex gap-1 justify-center w-full">
