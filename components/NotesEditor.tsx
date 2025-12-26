@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface NotesEditorProps {
   currentNotes: string;
@@ -9,20 +9,6 @@ interface NotesEditorProps {
 
 const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ currentNotes, onSave, onClose }, ref) => {
   const [notes, setNotes] = useState(currentNotes);
-  const internalRef = useRef<HTMLTextAreaElement>(null); // Internal ref
-
-  // Combine external ref with internal ref
-  const setRefs = useCallback(
-    (node: HTMLTextAreaElement | null) => {
-      internalRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref) {
-        ref.current = node;
-      }
-    },
-    [ref],
-  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -37,17 +23,6 @@ const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ c
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
-
-  useEffect(() => {
-    // Aggressive re-focus if focus is lost within the NotesEditor
-    const interval = setInterval(() => {
-      if (internalRef.current && document.activeElement !== internalRef.current) {
-        internalRef.current.focus();
-      }
-    }, 100); // Check every 100ms
-
-    return () => clearInterval(interval);
-  }, []); // Run once on mount
 
   const handleSave = () => {
     onSave(notes);
@@ -65,7 +40,7 @@ const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ c
         </header>
 
         <textarea
-          ref={setRefs} // Use the combined ref here
+          ref={ref} // Restore original ref usage
           className="flex-grow w-full h-40 bg-zinc-50 border border-zinc-200 rounded-2xl p-4 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-black resize-none"
           placeholder="Write your notes here..."
           value={notes}

@@ -107,5 +107,12 @@ export const VERSION_HISTORY = [
         changes: [
             "Implemented aggressive focus retention for NotesEditor textarea to ensure continuous typing without interruption."
         ]
+    },
+    {
+        version: "1.3.9",
+        date: "December 26, 2025",
+        changes: [
+            "Fixed critical crash when opening NotesEditor by reverting aggressive focus retention logic."
+        ]
     }
 ];
