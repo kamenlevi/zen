@@ -2,11 +2,15 @@ import { GoogleGenAI } from "@google/genai";
 import { Difficulty } from "../types.ts";
 import { COLORS_LIST } from "./wordBank.ts";
 import { findBestMatch } from "../utils/fuzzy.ts";
+import { getColorDifference } from "../utils/color.ts";
 
 export interface ColorData {
   name: string;
   hex: string;
 }
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let hintCache = new Map<string, string>();
 
 export function getRandomNicheColor(difficulty: Difficulty = Difficulty.Medium): ColorData {
   const startIdx = difficulty === Difficulty.Easy ? 0 : 
@@ -24,31 +28,22 @@ export async function getSemanticCloseness(guess: string, target: string): Promi
   const bestMatchName = findBestMatch(guess, colorNames);
   const effectiveGuess = bestMatchName || guess;
   
-  const offlineMatch = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Color Similarity: Target="${target}", Guess="${effectiveGuess}". JSON: {"score": 0-100, "hex": string, "isValid": boolean}`,
-      config: { responseMimeType: "application/json" }
-    });
-    const data = JSON.parse(response.text || '{}');
-    return {
-      percentage: Number(data.score) || 0,
-      hex: data.hex || (offlineMatch ? offlineMatch.hex : '#808080'),
-      isValid: data.isValid !== false,
-      correctedName: effectiveGuess
-    };
-  } catch (error) {
-    if (offlineMatch) return { 
-      percentage: effectiveGuess.toLowerCase() === target.toLowerCase() ? 100 : 50, 
-      hex: offlineMatch.hex, 
-      isValid: true,
-      correctedName: effectiveGuess
-    };
+  const guessColor = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());
+  const targetColor = COLORS_LIST.find(c => c.name.toLowerCase() === target.toLowerCase());
+
+  if (!guessColor || !targetColor) {
     return { percentage: 0, hex: "#808080", isValid: false };
   }
+
+  const difference = getColorDifference(guessColor.hex, targetColor.hex);
+  const percentage = Math.max(0, 100 - difference);
+
+  return {
+    percentage,
+    hex: guessColor.hex,
+    isValid: true,
+    correctedName: effectiveGuess
+  };
 }
 
 export function rgbToHex(r: number, g: number, b: number): string {
@@ -57,13 +52,18 @@ export function rgbToHex(r: number, g: number, b: number): string {
 }
 
 export async function getColorHint(targetColorName: string): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (hintCache.has(targetColorName)) {
+        return hintCache.get(targetColorName)!;
+    }
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Provide a single cryptic, poetic hint for the color "${targetColorName}". Rules: 1. No color name. 2. Under 10 words.`,
     });
-    return response.text?.trim() || "A shade from the natural world.";
+    const hint = response.text?.trim() || "A shade from the natural world.";
+    hintCache.set(targetColorName, hint);
+    return hint;
   } catch (err) {
     return "Think of common objects associated with this hue.";
   }

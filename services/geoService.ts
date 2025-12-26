@@ -1,7 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { Difficulty } from "../types.ts";
-import { COUNTRIES_LIST } from "./wordBank.ts";
+import { COUNTRIES_DATA } from "./countryData.ts";
 import { findBestMatch } from "../utils/fuzzy.ts";
+import { haversineDistance, getDirection } from "../utils/geo.ts";
+
+const COUNTRIES_LIST = COUNTRIES_DATA.map(c => c.name);
+const COUNTRY_MAP = new Map(COUNTRIES_DATA.map(c => [c.name, c]));
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let hintCache = new Map<string, string>();
 
 export function getRandomCountry(difficulty: Difficulty = Difficulty.Medium): string {
   return COUNTRIES_LIST[Math.floor(Math.random() * COUNTRIES_LIST.length)];
@@ -10,41 +17,45 @@ export function getRandomCountry(difficulty: Difficulty = Difficulty.Medium): st
 export async function validateAndGetLocation(guess: string, targetName: string): Promise<{
   isValid: boolean; distance: number; direction: string; percentage: number; canonicalName: string; lat: number; lng: number;
 }> {
-  // Apply autocorrect
   const bestMatchName = findBestMatch(guess, COUNTRIES_LIST);
   const effectiveGuess = bestMatchName || guess;
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Geography Similarity: Target="${targetName}", Guess="${effectiveGuess}". JSON: {"isValid": boolean, "distance": km, "direction": N/E/S/W, "percentage": 0-100, "name": string, "lat": num, "lng": num}`,
-      config: { responseMimeType: "application/json" }
-    });
-    const data = JSON.parse(response.text || '{}');
-    return {
-      isValid: data.isValid !== false,
-      distance: Math.round(data.distance || 0),
-      direction: data.direction || '?',
-      percentage: Number(data.percentage) || 0,
-      canonicalName: data.name || effectiveGuess,
-      lat: data.lat || 0,
-      lng: data.lng || 0
-    };
-  } catch (error) {
-    const exists = COUNTRIES_LIST.some(c => c.toLowerCase() === effectiveGuess.toLowerCase());
-    return { isValid: exists, distance: 0, direction: '?', percentage: 0, canonicalName: effectiveGuess, lat: 0, lng: 0 };
+  const guessCountry = COUNTRY_MAP.get(effectiveGuess);
+  const targetCountry = COUNTRY_MAP.get(targetName);
+
+  if (!guessCountry || !targetCountry) {
+    return { isValid: false, distance: 0, direction: '?', percentage: 0, canonicalName: effectiveGuess, lat: 0, lng: 0 };
   }
+
+  const distance = haversineDistance(guessCountry.latitude, guessCountry.longitude, targetCountry.latitude, targetCountry.longitude);
+  const direction = getDirection(guessCountry.latitude, guessCountry.longitude, targetCountry.latitude, targetCountry.longitude);
+  const maxDistance = 20000; // Max possible distance on Earth is roughly 20,000 km
+  const percentage = Math.max(0, 100 - (distance / maxDistance) * 100);
+
+  return {
+    isValid: true,
+    distance: Math.round(distance),
+    direction,
+    percentage,
+    canonicalName: guessCountry.name,
+    lat: guessCountry.latitude,
+    lng: guessCountry.longitude
+  };
 }
 
 export async function getGeoHint(targetCountry: string): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (hintCache.has(targetCountry)) {
+        return hintCache.get(targetCountry)!;
+    }
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Poetic hint about "${targetCountry}". No name. Under 15 words.`,
     });
-    return response.text?.trim() || "A land with rich history.";
+    const hint = response.text?.trim() || "A land with rich history.";
+    hintCache.set(targetCountry, hint);
+    return hint;
   } catch (err) {
     return "This nation lies within a major continent.";
   }
