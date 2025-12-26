@@ -13,7 +13,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   const Toggle = ({ label, desc, value, onChange }: { label: string, desc: string, value: boolean, onChange: (v: boolean) => void }) => (
     <label className="flex flex-col p-3 sm:p-5 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
       <div className="flex items-center justify-between w-full mb-0.5">
-        <span className="text-[12px] sm:text-[14px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
+        <span className="text-[14px] sm:text-[16px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
         <div 
           onPointerDown={(e) => { e.preventDefault(); onChange(!value); }}
           className={`w-10 h-5 sm:w-11 sm:h-5.5 rounded-full transition-colors relative ${value ? 'bg-black' : 'bg-zinc-200'}`}
@@ -21,7 +21,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform ${value ? 'translate-x-5 sm:translate-x-5.5' : ''}`}></div>
         </div>
       </div>
-      <p className="text-[8px] sm:text-[9.5px] text-zinc-400 font-medium leading-tight pr-2">{desc}</p>
+      <p className="text-[9px] sm:text-[11px] text-zinc-600 font-medium leading-tight pr-2">{desc}</p>
     </label>
   );
 
@@ -34,12 +34,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
 
   return (
     <div className="h-full flex flex-col p-4 sm:p-8 font-sans max-w-xl mx-auto bg-zinc-50/20">
-      <header className="py-1 flex-shrink-0 border-b border-zinc-50 mb-2 sm:mb-6">
+      <header className="py-1 flex-shrink-0 border-b border-zinc-50 mb-2 sm:mb-4">
         <h1 className="text-xl sm:text-2xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
         <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[7px] sm:text-[9px] mt-0.5">Zen • {context}</p>
       </header>
 
-      <main className="flex-grow space-y-4 sm:space-y-12 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
+      <main className="flex-grow space-y-4 sm:space-y-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
         {(context === 'global' || context === 'sudoku') && (
           <Section title="Sudoku">
             <Toggle label="Mistakes" desc="Red flags for errors." value={settings.sudoku.highlightMistakes} onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightMistakes: v } })} />
@@ -64,7 +64,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <Toggle label="Haptics" desc="Device pulses." value={settings.global.haptics} onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} />
         </Section>
         <Section title="About">
-            <p className="text-[12px] sm:text-[14px] font-bold text-zinc-500 px-3">Version: 1.0.0</p>
+            <p className="text-[12px] sm:text-[14px] font-bold text-zinc-900">Version: 1.0.0</p>
         </Section>
       </main>
 
