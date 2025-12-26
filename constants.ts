@@ -92,5 +92,13 @@ export const VERSION_HISTORY = [
         changes: [
             "Implemented robust, centralized focus management for auto-typing on PC. Input fields for Colordle/Geodle and the game container for Wordle now reliably gain and retain focus, allowing typing without clicking."
         ]
+    },
+    {
+        version: "1.3.7",
+        date: "December 26, 2025",
+        changes: [
+            "Fixed 'question mark' placeholder placement on Colordle and Geodle to be correctly centered.",
+            "Ensured the textarea in NotesEditor automatically gains focus when the editor opens."
+        ]
     }
 ];

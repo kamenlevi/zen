@@ -89,6 +89,6 @@ const ColordleInput = React.forwardRef<HTMLInputElement, ColordleInputProps>(({
       </form>
     </div>
   );
-};
+}); // Corrected: Added closing parenthesis and semicolon
 
 export default ColordleInput;
