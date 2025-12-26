@@ -29,7 +29,6 @@ export const COLORS_LIST = [
   { name: "Maroon", hex: "#800000" },
   { name: "Olive", hex: "#808000" },
   { name: "Purple", hex: "#800080" },
-  { name.
   { name: "Teal", hex: "#008080" },
   { name: "Navy", hex: "#000080" },
   { name: "Orange", hex: "#FFA500" },
