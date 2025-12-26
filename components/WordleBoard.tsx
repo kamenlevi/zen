@@ -46,7 +46,7 @@ const WordleBoard: React.FC<WordleBoardProps> = ({ guesses, results, currentGues
                 <div
                   key={j}
                   className={`
-                    w-[min(13.5vw,66px)] h-[min(13.5vw,66px)] sm:w-[80px] sm:h-[80px]
+                    w-[min(12.5vw,66px)] h-[min(12.5vw,66px)] sm:w-[80px] sm:h-[80px]
                     flex-shrink flex items-center justify-center 
                     text-xl sm:text-4xl font-black uppercase rounded-none border-2 transition-all duration-300
                     ${bgColor} ${textColor}
