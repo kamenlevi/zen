@@ -114,5 +114,13 @@ export const VERSION_HISTORY = [
         changes: [
             "Fixed critical crash when opening NotesEditor by reverting aggressive focus retention logic."
         ]
+    },
+    {
+        version: "1.4.0",
+        date: "December 26, 2025",
+        changes: [
+            "Centralized Escape key handling in App.tsx for consistent pause menu behavior.",
+            "Re-implemented auto-focus for NotesEditor to ensure typing without clicking, leveraging autoFocus attribute and App.tsx's centralized focus management."
+        ]
     }
 ];

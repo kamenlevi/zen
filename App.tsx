@@ -423,11 +423,23 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (view.includes('-game') && !isWon && !isLost) {
+        if (showNotesEditor) { // If notes editor is open, close it
+          setShowNotesEditor(false);
+          return;
+        }
+        if (selectedHistoryGame) { // If statistics modal is open, close it
+          setSelectedHistoryGame(null);
+          return;
+        }
+        if (isPaused) { // If pause menu is open, resume game
+          setIsPaused(false);
+          return;
+        }
+        if (view.includes('-game') && !isWon && !isLost) { // If in game, pause it
           setIsPaused(true);
           return;
         }
-        handleBack();
+        handleBack(); // Fallback for other views
         return;
       }
       if (isPaused || isWon || isLost || isWordleValidating) return;

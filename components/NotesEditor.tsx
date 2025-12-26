@@ -41,6 +41,7 @@ const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ c
 
         <textarea
           ref={ref} // Restore original ref usage
+          autoFocus // Re-added autoFocus
           className="flex-grow w-full h-40 bg-zinc-50 border border-zinc-200 rounded-2xl p-4 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-black resize-none"
           placeholder="Write your notes here..."
           value={notes}
