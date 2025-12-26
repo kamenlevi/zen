@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { GameSettings } from '../types.ts';
+import { VERSION_HISTORY } from '../constants.ts';
+import VersionHistoryMenu from './VersionHistoryMenu.tsx';
 
 interface SettingsScreenProps {
   context: 'global' | 'sudoku' | 'wordle' | 'colordle' | 'geodle';
@@ -10,8 +12,10 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSettingsChange, onBack }) => {
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+
   const Toggle = ({ label, desc, value, onChange }: { label: string, desc: string, value: boolean, onChange: (v: boolean) => void }) => (
-    <label className="flex flex-col p-3 sm:p-5 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
+    <label className="flex flex-col p-2 sm:p-3 bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border border-zinc-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer group">
       <div className="flex items-center justify-between w-full mb-0.5">
         <span className="text-[14px] sm:text-[16px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
         <div 
@@ -26,7 +30,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
   );
 
   const Section = ({ title, children }: { title: string, children?: React.ReactNode }) => (
-    <div className="w-full space-y-2 sm:space-y-4 pt-1 sm:pt-4">
+    <div className="w-full space-y-1 sm:space-y-2 pt-1 sm:pt-4">
       <h3 className="text-[9px] sm:text-[10px] font-black text-zinc-900 uppercase tracking-[0.5em] px-2 border-l-[3px] border-black ml-1">{title}</h3>
       <div className="space-y-1.5 sm:space-y-3">{children}</div>
     </div>
@@ -64,13 +68,17 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
           <Toggle label="Haptics" desc="Device pulses." value={settings.global.haptics} onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} />
         </Section>
         <Section title="About">
-            <p className="text-[12px] sm:text-[14px] font-bold text-zinc-900">Version: 1.0.0</p>
+            <button onPointerDown={() => setShowVersionHistory(true)} className="w-full text-left">
+                <p className="text-[12px] sm:text-[14px] font-bold text-zinc-900 cursor-pointer hover:text-black transition-colors">Version: {VERSION_HISTORY[VERSION_HISTORY.length - 1].version}</p>
+            </button>
         </Section>
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 p-5 sm:p-8 bg-gradient-to-t from-white via-white/95 to-transparent pt-8">
         <button onPointerDown={onBack} className="w-full max-w-xs mx-auto block bg-black text-white font-black py-4 sm:py-5 rounded-full shadow-xl uppercase tracking-[0.4em] text-[9px] sm:text-[10px] active:scale-95 transition-all">Back</button>
       </footer>
+
+      {showVersionHistory && <VersionHistoryMenu onClose={() => setShowVersionHistory(false)} />}
     </div>
   );
 };

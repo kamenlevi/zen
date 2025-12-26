@@ -376,7 +376,7 @@ const App: React.FC = () => {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (view === 'hub' || isPaused || isWon || isLost) return;
+    if (isPaused || isWon || isLost) return; // Allow swipe in all views except when game is paused/won/lost
     touchStartY.current = e.touches[0].clientY;
   };
 
@@ -388,7 +388,7 @@ const App: React.FC = () => {
   };
 
   const handleTouchEnd = () => {
-    if (swipeY > 160) handleBack();
+    if (swipeY > 100) handleBack(); // Lower threshold for a more natural gesture
     setSwipeY(0);
     touchStartY.current = null;
   };
