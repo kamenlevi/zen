@@ -19,43 +19,43 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
       />
       
       {/* Menu Card */}
-      <div className="relative bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-[0_32px_80px_rgba(0,0,0,0.15)] border border-zinc-200 animate-pop-in">
-        <div className="absolute top-8 left-8">
-           <button onClick={onResume} className="p-2 bg-zinc-50 rounded-full active:scale-90 transition-transform">
-              <ChevronLeftIcon className="w-5 h-5 text-black" />
+      <div className="relative bg-white w-full max-w-sm rounded-[4rem] p-12 shadow-[0_40px_100px_rgba(0,0,0,0.2)] border border-zinc-200 animate-pop-in">
+        <div className="absolute top-10 left-10">
+           <button onClick={onResume} className="p-4 bg-zinc-50 rounded-full active:scale-90 transition-transform shadow-sm">
+              <ChevronLeftIcon className="w-8 h-8 text-black" />
            </button>
         </div>
 
-        <h2 className="text-4xl font-black tracking-tighter text-black mb-2 uppercase text-center">Paused</h2>
-        <p className="text-[10px] font-black text-zinc-400 tracking-[0.4em] uppercase text-center mb-12">
+        <h2 className="text-5xl font-black tracking-tighter text-black mb-2 uppercase text-center mt-12">Paused</h2>
+        <p className="text-[11px] font-black text-zinc-400 tracking-[0.5em] uppercase text-center mb-16">
           {gameType}
         </p>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <button 
             onClick={onResume}
-            className="w-full flex items-center justify-between px-8 py-6 bg-black text-white rounded-full font-black uppercase tracking-widest text-[12px] shadow-xl active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-10 py-7 bg-black text-white rounded-full font-black uppercase tracking-widest text-[14px] shadow-2xl active:scale-[0.98] transition-transform"
           >
-            <span>Resume Game</span>
-            <PlayIcon className="w-5 h-5" />
+            <span>Resume</span>
+            <PlayIcon className="w-8 h-8" />
           </button>
 
           <button 
             onClick={onRestart}
-            className="w-full flex items-center justify-between px-8 py-6 bg-zinc-100 text-zinc-900 rounded-full font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-10 py-7 bg-zinc-100 text-zinc-900 rounded-full font-black uppercase tracking-widest text-[14px] active:scale-[0.98] transition-transform shadow-sm"
           >
             <span>Restart</span>
-            <ResetIcon className="w-5 h-5" />
+            <ResetIcon className="w-8 h-8" />
           </button>
 
-          <div className="h-[1px] bg-zinc-100 my-2" />
+          <div className="h-[1px] bg-zinc-100 my-4" />
 
           <button 
             onClick={onExit}
-            className="w-full flex items-center justify-between px-8 py-6 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest text-[12px] active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between px-10 py-7 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest text-[14px] active:scale-[0.98] transition-transform"
           >
-            <span>Exit to Menu</span>
-            <XIcon className="w-5 h-5" />
+            <span>Exit Menu</span>
+            <XIcon className="w-8 h-8" />
           </button>
         </div>
       </div>

@@ -39,17 +39,17 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   };
 
   return (
-    <div className="w-full bg-white/98 backdrop-blur-3xl border-t border-zinc-200 p-4 pb-8 sm:p-6 sm:pb-10 rounded-t-[2.5rem] shadow-[0_-15px_40px_rgba(0,0,0,0.08)] flex flex-col items-center gap-4">
+    <div className="w-full bg-white/98 backdrop-blur-3xl border-t border-zinc-200 p-5 pb-10 sm:p-7 sm:pb-12 rounded-t-[3rem] shadow-[0_-20px_50px_rgba(0,0,0,0.1)] flex flex-col items-center gap-5">
       {currentHint && (
         <div className="w-full max-w-sm animate-fade-in">
-          <div className="bg-zinc-50 border border-zinc-100 p-3 px-5 rounded-full flex items-start gap-3 shadow-inner">
-            <SparkleIcon className="w-3.5 h-3.5 text-zinc-400 mt-0.5 flex-shrink-0" />
-            <p className="text-[11px] font-medium italic text-zinc-600 leading-tight">"{currentHint}"</p>
+          <div className="bg-zinc-50 border border-zinc-100 p-4 px-6 rounded-full flex items-start gap-4 shadow-inner">
+            <SparkleIcon className="w-5 h-5 text-zinc-400 mt-0.5 flex-shrink-0" />
+            <p className="text-[12px] font-medium italic text-zinc-600 leading-tight">"{currentHint}"</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
         <div className="relative">
           <input
             ref={inputRef}
@@ -57,25 +57,25 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Type color name..."
-            className="w-full bg-zinc-50 border-2 px-6 py-4 rounded-full text-base font-bold tracking-tight outline-none border-transparent focus:border-black focus:bg-white text-black shadow-inner"
+            className="w-full bg-zinc-50 border-2 px-7 py-5 rounded-full text-lg font-bold tracking-tight outline-none border-transparent focus:border-black focus:bg-white text-black shadow-inner"
             disabled={isLoading || isHintLoading}
             autoComplete="off"
             autoFocus
           />
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-3">
            <button 
              type="button"
-             onClick={onGetHint}
-             className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-14 h-14 rounded-full flex items-center justify-center border border-zinc-200 active:scale-90"
+             onPointerDown={onGetHint}
+             className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-16 h-16 rounded-full flex items-center justify-center border border-zinc-200 active:scale-90 shadow-sm"
            >
-             <SparkleIcon className="w-4 h-4 text-black" />
+             <SparkleIcon className="w-8 h-8 text-black" />
            </button>
            <button 
             type="submit"
             disabled={!value.trim() || isLoading}
-            className="flex-grow bg-black text-white h-14 rounded-full font-black tracking-[0.3em] uppercase text-[11px] shadow-lg active:scale-95 disabled:opacity-30"
+            className="flex-grow bg-black text-white h-16 rounded-full font-black tracking-[0.3em] uppercase text-[11px] shadow-xl active:scale-95 disabled:opacity-30"
           >
             {isLoading ? 'Checking...' : 'Guess Color'}
           </button>

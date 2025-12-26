@@ -30,7 +30,9 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
       else colorClasses = 'bg-zinc-100 text-zinc-900 border-zinc-200';
     }
 
-    const handleClick = () => {
+    const handleAction = (e: React.PointerEvent) => {
+      e.preventDefault();
+      if (validating && key === 'ENTER') return;
       if (key === 'ENTER') onEnter();
       else if (key === 'DELETE') onDelete();
       else onKey(key);
@@ -42,20 +44,19 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
     return (
       <button
         key={key}
-        disabled={validating && isEnter}
-        onClick={handleClick}
+        onPointerDown={handleAction}
         className={`
-          flex-1 h-[68px] sm:h-20 flex items-center justify-center rounded-xl font-black transition-all active:scale-95 border
-          ${isDelete || isEnter ? 'flex-[1.5] text-[10px] sm:text-[12px] tracking-widest' : 'text-[15px] sm:text-lg'}
+          flex-1 h-[66px] sm:h-18 flex items-center justify-center rounded-lg font-black transition-all active:scale-[0.9] border touch-manipulation
+          ${isDelete || isEnter ? 'flex-[1.6] text-[10px] sm:text-[12px] tracking-widest' : 'text-[17px] sm:text-xl'}
           ${colorClasses}
           ${validating && isEnter ? 'opacity-50' : ''}
         `}
       >
         {isDelete ? (
-          <BackspaceIcon className="w-5 h-5" />
+          <BackspaceIcon className="w-8 h-8" />
         ) : isEnter ? (
           validating ? (
-            <div className="w-5 h-5 border-2 border-zinc-400 border-t-zinc-900 rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-3 border-zinc-400 border-t-zinc-900 rounded-full animate-spin"></div>
           ) : (
             'ENTER'
           )
@@ -65,11 +66,11 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full max-w-lg mx-auto px-1 select-none">
+    <div className="flex flex-col gap-2 w-full max-w-md mx-auto px-1 select-none touch-manipulation">
       <div className="flex gap-1 justify-center w-full">
         {ROW_1.map(k => renderKey(k))}
       </div>
-      <div className="flex gap-1 justify-center w-[100%] mx-auto">
+      <div className="flex gap-1 justify-center w-[92%] mx-auto">
         {ROW_2.map(k => renderKey(k))}
       </div>
       <div className="flex gap-1 justify-center w-full">
