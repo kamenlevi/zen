@@ -11,35 +11,35 @@ interface SettingsScreenProps {
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSettingsChange, onBack }) => {
   const Toggle = ({ label, desc, value, onChange }: { label: string, desc: string, value: boolean, onChange: (v: boolean) => void }) => (
-    <label className="flex flex-col p-8 bg-white rounded-[3rem] border border-zinc-100 shadow-sm active:scale-[0.99] transition-all cursor-pointer group">
-      <div className="flex items-center justify-between w-full mb-2">
-        <span className="text-[17px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
+    <label className="flex flex-col p-6 sm:p-8 bg-white rounded-[2rem] sm:rounded-[3rem] border border-zinc-100 shadow-sm active:scale-[0.99] transition-all cursor-pointer group">
+      <div className="flex items-center justify-between w-full mb-1 sm:mb-2">
+        <span className="text-[14px] sm:text-[17px] font-black uppercase tracking-widest text-zinc-900 leading-none">{label}</span>
         <div 
           onClick={(e) => { e.preventDefault(); onChange(!value); }}
-          className={`w-14 h-7 rounded-full transition-colors relative ${value ? 'bg-black' : 'bg-zinc-200'}`}
+          className={`w-12 h-6 sm:w-14 sm:h-7 rounded-full transition-colors relative ${value ? 'bg-black' : 'bg-zinc-200'}`}
         >
-          <div className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${value ? 'translate-x-7' : ''}`}></div>
+          <div className={`absolute top-0.5 sm:top-1 left-0.5 sm:left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${value ? 'translate-x-6 sm:translate-x-7' : ''}`}></div>
         </div>
       </div>
-      <p className="text-[11px] text-zinc-400 font-medium leading-tight pr-8">{desc}</p>
+      <p className="text-[10px] sm:text-[11px] text-zinc-400 font-medium leading-tight pr-4 sm:pr-8">{desc}</p>
     </label>
   );
 
   const Section = ({ title, children }: { title: string, children?: React.ReactNode }) => (
-    <div className="w-full space-y-8 pt-8">
-      <h3 className="text-[13px] font-black text-zinc-900 uppercase tracking-[0.6em] px-4 border-l-[6px] border-black ml-1">{title}</h3>
-      <div className="space-y-4">{children}</div>
+    <div className="w-full space-y-4 sm:space-y-8 pt-4 sm:pt-8">
+      <h3 className="text-[11px] sm:text-[13px] font-black text-zinc-900 uppercase tracking-[0.6em] px-4 border-l-[4px] sm:border-l-[6px] border-black ml-1">{title}</h3>
+      <div className="space-y-3 sm:space-y-4">{children}</div>
     </div>
   );
 
   return (
-    <div className="h-full flex flex-col p-10 font-sans max-w-xl mx-auto bg-zinc-50/20">
-      <header className="py-12 flex-shrink-0 border-b border-zinc-100 mb-12">
-        <h1 className="text-7xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
-        <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[11px] mt-4">Personalize your Zen • {context}</p>
+    <div className="h-full flex flex-col p-6 sm:p-10 font-sans max-w-xl mx-auto bg-zinc-50/20">
+      <header className="py-6 sm:py-12 flex-shrink-0 border-b border-zinc-100 mb-6 sm:mb-12">
+        <h1 className="text-4xl sm:text-7xl font-black tracking-tighter text-zinc-900 leading-none uppercase">Settings</h1>
+        <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[9px] sm:text-[11px] mt-2 sm:mt-4">Personalize your Zen • {context}</p>
       </header>
 
-      <main className="flex-grow space-y-24 overflow-y-auto no-scrollbar pb-64">
+      <main className="flex-grow space-y-12 sm:space-y-24 overflow-y-auto no-scrollbar pb-48 sm:pb-64">
         {/* SUDOKU SECTION */}
         {(context === 'global' || context === 'sudoku') && (
           <Section title="Sudoku Master">
@@ -161,12 +161,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
             value={settings.global.haptics} 
             onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} 
           />
-          <button className="w-full py-8 mt-12 text-red-600 font-black uppercase tracking-[0.4em] text-[13px] bg-red-50/50 border border-red-100 rounded-[3rem] active:bg-red-100 transition-colors shadow-sm">Reset Settings</button>
+          <button className="w-full py-6 mt-6 sm:mt-12 text-red-600 font-black uppercase tracking-[0.4em] text-[11px] sm:text-[13px] bg-red-50/50 border border-red-100 rounded-[2rem] sm:rounded-[3rem] active:bg-red-100 transition-colors shadow-sm">Reset Settings</button>
         </Section>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-white via-white/95 to-transparent pt-24">
-        <button onClick={onBack} className="w-full max-w-xl mx-auto block bg-black text-white font-black py-8 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[13px] active:scale-95 transition-all">Back to Menu</button>
+      <footer className="fixed bottom-0 left-0 right-0 p-8 sm:p-12 bg-gradient-to-t from-white via-white/95 to-transparent pt-12 sm:pt-24">
+        <button onClick={onBack} className="w-full max-w-xl mx-auto block bg-black text-white font-black py-6 sm:py-8 rounded-full shadow-2xl uppercase tracking-[0.4em] text-[11px] sm:text-[13px] active:scale-95 transition-all">Back to Menu</button>
       </footer>
     </div>
   );

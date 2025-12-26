@@ -281,7 +281,13 @@ const App: React.FC = () => {
       return;
     }
     if (view.includes('-game')) {
-      setIsPaused(true);
+      // Direct transition to menu instead of pausing
+      if (activeGameType) {
+        setView(`${activeGameType}-menu` as View);
+        setIsPaused(false);
+      } else {
+        setView('hub');
+      }
       return;
     }
     if (view.includes('-menu')) {
@@ -371,37 +377,37 @@ const App: React.FC = () => {
   const HubButton = ({ type }: { type: string }) => (
     <button 
       onClick={() => { setActiveGameType(type as any); setView(`${type}-menu` as any); }}
-      className={`w-full py-6 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 hover:shadow-2xl bg-black text-white border border-zinc-100 shadow-xl group`}
+      className={`w-full py-5 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 hover:shadow-2xl bg-black text-white border border-zinc-100 shadow-xl group`}
     >
-      <span className="text-[12px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all">{type}</span>
+      <span className="text-[11px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all">{type}</span>
     </button>
   );
 
   return (
     <div className="app-container relative bg-zinc-50 overflow-hidden font-sans safe-pt safe-pb">
       {/* Background Hub visible during swipe */}
-      <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-8 overflow-y-auto no-scrollbar">
+      <div className="absolute inset-0 z-0 bg-white flex flex-col items-center justify-center p-6 overflow-y-auto no-scrollbar">
         <h1 className="text-[min(14vw,80px)] font-black tracking-tighter text-black leading-none mb-6 mt-4 drop-shadow-sm">ZEN</h1>
-        <div className="w-full max-w-xs space-y-4">
+        <div className="w-full max-w-xs space-y-3">
           <HubButton type="sudoku" />
           <HubButton type="wordle" />
           <HubButton type="colordle" />
           <HubButton type="geodle" />
           
-          <div className="flex gap-3 pt-4 pb-8">
+          <div className="flex gap-2 pt-2 pb-6">
             <button 
               onClick={() => { setView('history'); }} 
-              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group pointer-events-auto"
+              className="flex-1 py-4 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md group pointer-events-auto"
             >
-              <ClockIcon className="w-4 h-4 text-black" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-black">History</span>
+              <ClockIcon className="w-3.5 h-3.5 text-black" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-black">History</span>
             </button>
             <button 
               onClick={() => { setView('settings'); }} 
-              className="flex-1 py-5 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-md group pointer-events-auto"
+              className="flex-1 py-4 rounded-3xl bg-zinc-100 border border-zinc-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md group pointer-events-auto"
             >
-              <SettingsIcon className="w-4 h-4 text-black" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-black">Settings</span>
+              <SettingsIcon className="w-3.5 h-3.5 text-black" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-black">Settings</span>
             </button>
           </div>
         </div>
@@ -448,7 +454,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={(g) => { setView(`${g.gameType}-game` as View); setActiveGameType(g.gameType); }} />}
+          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={(g) => { setView(`${g.gameType}-game` as View); setActiveGameType(g.gameType); setIsPaused(false); }} />}
           {view === 'settings' && <SettingsScreen context={activeGameType || 'global'} settings={settings} onSettingsChange={handleSettingsChange} onBack={handleBack} />}
 
           {view.includes('-game') && (
@@ -494,7 +500,7 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-[0_-15px_30px_rgba(0,0,0,0.02)]"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
               </div>
 
-              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView('hub'); setActiveGameType(null); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} />}
+              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} />}
             </div>
           )}
         </div>
