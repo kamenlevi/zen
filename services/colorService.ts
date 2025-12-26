@@ -23,14 +23,21 @@ export function getRandomNicheColor(difficulty: Difficulty = Difficulty.Medium):
 }
 
 export async function getSemanticCloseness(guess: string, target: string): Promise<{ percentage: number; hex: string; isValid?: boolean; correctedName?: string }> {
-  // Apply autocorrect
+  // Preprocess guess to handle multi-word colors (e.g., 'darkblue' -> 'dark blue')
+  let normalizedGuess = guess.trim();
+  if (!normalizedGuess.includes(' ')) {
+    const matchedColor = COLORS_LIST.find(c => c.name.toLowerCase().replace(/\s/g, '') === normalizedGuess.toLowerCase());
+    if (matchedColor) {
+      normalizedGuess = matchedColor.name;
+    }
+  }
+
   const colorNames = COLORS_LIST.map(c => c.name);
-  const bestMatchName = findBestMatch(guess, colorNames);
+  const bestMatchName = findBestMatch(normalizedGuess, colorNames);
 
   if (!bestMatchName) {
-    return { percentage: 0, hex: "#808080", isValid: false };
-  }
-  
+    return { percentage: 0, hex: "#808080", isValid: false }; 
+  }  
   const effectiveGuess = bestMatchName;
   
     const guessColor = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());

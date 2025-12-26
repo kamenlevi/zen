@@ -72,6 +72,7 @@ export interface CompletedGame {
   solution: Grid | string;
   moves: Move[];
   explanation?: string; 
+  notes?: string;
 }
 
 export interface InProgressGame {
@@ -84,6 +85,7 @@ export interface InProgressGame {
   boardState: BoardState | string[] | ColordleMove[] | GeodleMove[];
   elapsedTime: number;
   moves: Move[];
+  notes?: string;
 }
 
 // --- Settings ---
@@ -114,6 +116,5 @@ export interface GameSettings {
     animations: boolean;
     sounds: boolean;
     haptics: boolean;
-    historyClickResumes: boolean;
   };
 }

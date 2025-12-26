@@ -13,7 +13,6 @@ interface HistoryScreenProps {
   onBack: () => void;
   onOpenStats: (game: CompletedGame | InProgressGame) => void;
   onContinueGame: (game: InProgressGame) => void;
-  historyClickResumes: boolean;
 }
 
 const HistoryScreen: React.FC<HistoryScreenProps> = ({ 
@@ -46,18 +45,8 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
     return (
       <button 
         key={game.id} 
-        onPointerDown={() => {
-          if (isComplete) {
-            onOpenStats(game); // Always show stats for completed games
-          } else { // In-progress game
-            if (historyClickResumes) {
-              onContinueGame(game as InProgressGame); // Resume if setting is true
-            } else {
-              onOpenStats(game); // Show stats if setting is false
-            }
-          }
-        }}
-        className={`group w-full flex flex-col p-6 sm:p-8 bg-white border border-zinc-100 rounded-2xl sm:rounded-3xl transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
+        onPointerDown={() => onOpenStats(game)} // Always open stats
+        className={`group w-full flex flex-col p-8 sm:p-10 bg-white border border-zinc-100 rounded-2xl sm:rounded-3xl transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg text-left relative overflow-hidden outline-none ${isColordle ? 'bg-zinc-50/20 ring-1 ring-zinc-50' : ''}`}
       >
         <div className="aspect-square w-full mb-8 sm:mb-10 overflow-hidden rounded-xl sm:rounded-2xl shadow-inner bg-white border border-zinc-100 relative pointer-events-none">
           {isSudoku ? (
@@ -116,13 +105,13 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({
         {inProgress.length > 0 && (
           <div>
             <h3 className="text-[11px] sm:text-[13px] font-black text-zinc-300 uppercase tracking-[0.6em] mb-10 sm:mb-20 px-6">Active Sprints</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-16">{inProgress.map(g => renderCard(g, false))}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">{inProgress.map(g => renderCard(g, false))}</div>
           </div>
         )}
         {sortedCompleted.length > 0 && (
           <div>
             <h3 className="text-[11px] sm:text-[13px] font-black text-zinc-300 uppercase tracking-[0.6em] mb-10 sm:mb-20 px-6">Mastered Games</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-16">{sortedCompleted.map(g => renderCard(g, true))}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">{sortedCompleted.map(g => renderCard(g, true))}</div>
           </div>
         )}
         {inProgress.length === 0 && sortedCompleted.length === 0 && (

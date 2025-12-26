@@ -32,6 +32,7 @@ const WordleKeyboard: React.FC<WordleKeyboardProps> = ({ onKey, onEnter, onDelet
 
     const handleAction = (e: React.PointerEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       if (validating && key === 'ENTER') return;
       if (key === 'ENTER') onEnter();
       else if (key === 'DELETE') onDelete();

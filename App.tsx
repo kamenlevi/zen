@@ -24,7 +24,8 @@ import HistoryScreen from './components/HistoryScreen.tsx';
 import StatisticsModal from './components/StatisticsModal.tsx';
 import SettingsScreen from './components/SettingsScreen.tsx';
 import CompletionMenu from './components/CompletionMenu.tsx';
-import { ClockIcon, PauseIcon, ChevronLeftIcon, SettingsIcon } from './components/icons.tsx';
+import NotesEditor from './components/NotesEditor.tsx';
+import { ClockIcon, PauseIcon, ChevronLeftIcon, SettingsIcon, NoteIcon } from './components/icons.tsx';
 
 type View = 'hub' | 'sudoku-menu' | 'wordle-menu' | 'colordle-menu' | 'geodle-menu' | 'sudoku-game' | 'wordle-game' | 'colordle-game' | 'geodle-game' | 'history' | 'settings';
 
@@ -35,7 +36,7 @@ const DEFAULT_SETTINGS: GameSettings = {
   wordle: { hardMode: false, highContrast: false, showKeyboardFeedback: true },
   colordle: { allowHints: true, vibrationFeedback: true, showHexCodes: false },
   geodle: { metricUnits: true, showCoordinates: false, autoRotateGlobe: true },
-  global: { animations: true, sounds: true, haptics: true, historyClickResumes: true }
+  global: { animations: true, sounds: true, haptics: true }
 };
 
 const App: React.FC = () => {
@@ -77,8 +78,10 @@ const App: React.FC = () => {
   
   const [isWon, setIsWon] = useState(false);
   const [isLost, setIsLost] = useState(false);
+  const [currentNotes, setCurrentNotes] = useState<string>('');
   const [completionExplanation, setCompletionExplanation] = useState<string | undefined>(undefined);
   const [isPaused, setIsPaused] = useState(false);
+  const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
@@ -111,7 +114,8 @@ const App: React.FC = () => {
       solution: activeGameType === 'sudoku' ? solution! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColorName : targetCountry)),
       boardState: activeGameType === 'sudoku' ? boardState! : (activeGameType === 'wordle' ? guesses : (activeGameType === 'colordle' ? colordleGuesses : geodleGuesses)),
       elapsedTime,
-      moves: moveHistory
+      moves: moveHistory,
+      notes: currentNotes
     };
     try {
         const allInProgress = JSON.parse(localStorage.getItem(`zen_${activeGameType}_in_progress_list`) || '[]');
@@ -140,7 +144,8 @@ const App: React.FC = () => {
       puzzle: activeGameType === 'sudoku' ? initialPuzzle! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColor : targetCountry)), 
       solution: activeGameType === 'sudoku' ? solution! : (activeGameType === 'wordle' ? targetWord : (activeGameType === 'colordle' ? targetColor : targetCountry)), 
       moves: finalMoves,
-      explanation: explanation
+      explanation: explanation,
+      notes: currentNotes
     };
     try {
       const hist = JSON.parse(localStorage.getItem(`zen_${activeGameType}_history`) || '[]');
@@ -301,7 +306,7 @@ const App: React.FC = () => {
 
   const resetGameState = (targetView: View) => {
     setIsWon(false); setIsLost(false); setIsPaused(false); setElapsedTime(0); setStartTime(Date.now());
-    setCompletionExplanation(undefined);
+    setCompletionExplanation(undefined); setCurrentNotes(''); setCurrentNotes('');
     setMoveHistory([]); setView(targetView); setCurrentGuess(''); setKeyStatus({}); setWordleResults([]); 
     setGuesses([]); setColordleGuesses([]); setGeodleGuesses([]);
     setColordleHint(null); setGeodleHint(null); setSudokuHistory([]); setSudokuRedoStack([]); setColordleShakeTrigger(0);
@@ -333,6 +338,7 @@ const App: React.FC = () => {
     setElapsedTime(g.elapsedTime);
     setMoveHistory(g.moves);
     setGuesses([]); setWordleResults([]); setKeyStatus({}); setColordleGuesses([]); setGeodleGuesses([]);
+    setCurrentNotes(g.notes || '');
     if (g.gameType === 'sudoku') {
       setInitialPuzzle(g.puzzle as Grid);
       setSolution(g.solution as Grid);
@@ -481,7 +487,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} historyClickResumes={settings.global.historyClickResumes} />}
+          {view === 'history' && <HistoryScreen category={activeGameType || 'sudoku'} setCategory={(c) => setActiveGameType(c)} onBack={handleBack} onOpenStats={(g) => setSelectedHistoryGame(g)} onContinueGame={handleContinueGame} />}
           {view === 'settings' && <SettingsScreen context={activeGameType || 'global'} settings={settings} onSettingsChange={handleSettingsChange} onBack={handleBack} />}
 
           {view.includes('-game') && (
@@ -500,6 +506,12 @@ const App: React.FC = () => {
                 <button onPointerDown={() => setIsPaused(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm">
                   <PauseIcon className="w-8 h-8 text-black" />
                 </button>
+                <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
+                  <NoteIcon className="w-8 h-8 text-black" />
+                </button>
+                <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
+                  <NoteIcon className="w-8 h-8 text-black" />
+                </button>
               </header>
 
               <main className="flex-grow flex flex-col items-center justify-center relative overflow-hidden py-2">
@@ -517,7 +529,7 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><GeodleInput value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
               </div>
 
-              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} />}
+              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} notes={currentNotes} />}
               {(isWon || isLost) && !isPaused && (
                 <CompletionMenu
                   gameType={activeGameType!}
@@ -526,13 +538,15 @@ const App: React.FC = () => {
                   onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsWon(false); setIsLost(false); setCompletionExplanation(undefined); }}
                   onRestart={() => resetGameState(`${activeGameType}-game` as View)}
                   explanation={completionExplanation}
+                  notes={currentNotes}
                 />
               )}
             </div>
           )}
         </div>
       )}
-      {selectedHistoryGame && <StatisticsModal game={selectedHistoryGame} onClose={() => setSelectedHistoryGame(null)} />}
+      {selectedHistoryGame && <StatisticsModal game={selectedHistoryGame} onClose={() => setSelectedHistoryGame(null)} onBringToGame={handleContinueGame} />}
+      {showNotesEditor && <NotesEditor currentNotes={currentNotes} onSave={setCurrentNotes} onClose={() => setShowNotesEditor(false)} />}
     </div>
   );
 };

@@ -12,10 +12,10 @@ import TimelapsePlayer from './TimelapsePlayer.tsx';
 interface StatisticsModalProps {
   game: CompletedGame | InProgressGame | null;
   onClose: () => void;
-  onBringToGame?: () => void;
+  onBringToGame?: (game: InProgressGame) => void;
 }
 
-const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
+const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose, onBringToGame }) => {
   const isCompleted = useMemo(() => game && 'endTime' in game, [game]);
   
   const attemptLog = useMemo(() => {
@@ -110,6 +110,13 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
                   <p className="text-[13px] font-medium text-zinc-600 leading-tight italic">"{explanation}"</p>
                 </div>
               )}
+
+              {game.notes && (
+                <div className="bg-zinc-50 p-5 rounded-[2rem] border border-zinc-100">
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">User Notes</p>
+                  <p className="text-[13px] font-medium text-zinc-600 leading-tight italic">"{game.notes}"</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -124,7 +131,15 @@ const StatisticsModal: React.FC<StatisticsModalProps> = ({ game, onClose }) => {
           </div>
         </div>
 
-        <div className="mt-12">
+        <div className="mt-12 flex flex-col gap-4">
+          {!isCompleted && onBringToGame && (
+            <button 
+              onClick={() => onBringToGame(game as InProgressGame)} 
+              className="w-full bg-emerald-600 text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all"
+            >
+              Resume Game
+            </button>
+          )}
           <button onClick={onClose} className="w-full bg-black text-white py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">
             Back to History
           </button>

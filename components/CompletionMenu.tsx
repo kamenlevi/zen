@@ -9,6 +9,7 @@ interface CompletionMenuProps {
     onExit: () => void;
     onRestart: () => void;
     explanation?: string;
+    notes?: string;
 }
 
 const CompletionMenu: React.FC<CompletionMenuProps> = ({
@@ -17,7 +18,8 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
     elapsedTime,
     onExit,
     onRestart,
-    explanation
+    explanation,
+    notes
 }) => {
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -38,6 +40,12 @@ const CompletionMenu: React.FC<CompletionMenuProps> = ({
                     <p className="text-xs italic text-zinc-500 mt-2">
                         "{explanation}"
                     </p>
+                )}
+                {notes && (
+                    <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 mt-4 text-left">
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-1">Your Notes</p>
+                        <p className="text-sm text-zinc-800 leading-tight">{notes}</p>
+                    </div>
                 )}
             </div>
 

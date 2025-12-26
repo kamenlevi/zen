@@ -45,5 +45,21 @@ export const VERSION_HISTORY = [
             "Adjusted Wordle letter box sizes for better fit on mobile screens.",
             "Implemented enhanced mobile back gesture for smoother navigation."
         ]
+    },
+    {
+        version: "1.3.0",
+        date: "December 29, 2025",
+        changes: [
+            "Revamped Settings Tab Layout for improved vertical organization of game mode settings.",
+            "Adjusted History Tab Game Card Display for a bigger and less 'pill-like' appearance.",
+            "Fixed History Tab Click Behavior: Clicking any game now opens stats; a 'Resume Game' button is available for in-progress games in the stats modal.",
+            "Implemented 'Reset History' button in Settings to clear all game data.",
+            "Implemented 'Notes' feature: Users can write notes per level, visible in pause, completion, and stats menus.",
+            "Changed Help/Hint icons to a universal bulb design in Colordle and Geodle.",
+            "Integrated official Wordle answer word list (~2300 words) for target word selection.",
+            "Expanded Colordle color list with more niche and multi-word colors (e.g., 'bright yellow', 'dark blue'), handling multi-word inputs correctly.",
+            "Fixed Colordle/Geodle typing performance issues, addressing glitches and slowness.",
+            "Investigated and applied a speculative fix for persistent mobile typing issues by adding event propagation stopping.",
+        ]
     }
 ];

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { SparkleIcon } from './icons.tsx';
+import { BulbIcon } from './icons.tsx';
 
 interface GeodleInputProps {
   value: string;
@@ -37,16 +37,6 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    // Keep focus whenever component mounts or updates and not busy
-    const interval = setInterval(() => {
-        if (inputRef.current && document.activeElement !== inputRef.current && !isLoading && !isHintLoading) {
-            inputRef.current.focus();
-        }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [isLoading, isHintLoading]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onGuess(value);
@@ -57,7 +47,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
       {currentHint && (
         <div className="w-full max-w-sm animate-fade-in">
           <div className="bg-emerald-50/50 border border-emerald-100 p-4 px-6 rounded-full flex items-start gap-4">
-            <SparkleIcon className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+            <BulbIcon className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
             <p className="text-[12px] font-medium italic text-emerald-800 leading-tight">"{currentHint}"</p>
           </div>
         </div>
@@ -85,7 +75,7 @@ const GeodleInput: React.FC<GeodleInputProps> = ({
              disabled={!isOnline}
              className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-16 h-16 rounded-full flex items-center justify-center border border-zinc-200 shadow-sm disabled:opacity-30"
            >
-             <SparkleIcon className="w-8 h-8 text-black" />
+             <BulbIcon className="w-8 h-8 text-black" />
            </button>
            <button 
             type="submit"

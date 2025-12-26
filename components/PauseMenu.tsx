@@ -7,9 +7,10 @@ interface PauseMenuProps {
   onExit: () => void;
   onRestart?: () => void;
   gameType: string;
+  notes?: string;
 }
 
-const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, gameType }) => {
+const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, gameType, notes }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 animate-fade-in">
       {/* Backdrop */}
@@ -27,9 +28,16 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onExit, onRestart, game
         </div>
 
         <h2 className="text-5xl font-black tracking-tighter text-black mb-2 uppercase text-center mt-12">Paused</h2>
-        <p className="text-[11px] font-black text-zinc-400 tracking-[0.5em] uppercase text-center mb-16">
+        <p className="text-[11px] font-black text-zinc-400 tracking-[0.5em] uppercase text-center mb-4">
           {gameType}
         </p>
+
+        {notes && (
+            <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 mb-8">
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-1">Your Notes</p>
+                <p className="text-sm text-zinc-800 leading-tight">{notes}</p>
+            </div>
+        )}
 
         <div className="flex flex-col gap-5">
           <button 

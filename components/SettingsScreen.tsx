@@ -43,7 +43,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
         <p className="text-zinc-400 font-bold uppercase tracking-[0.4em] text-[7px] sm:text-[9px] mt-0.5">Zen • {context}</p>
       </header>
 
-      <main className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
+      <main className="flex-grow space-y-4 sm:space-y-8 overflow-y-auto no-scrollbar pb-32 sm:pb-40">
         {(context === 'global' || context === 'sudoku') && (
           <Section title="Sudoku">
             <Toggle label="Mistakes" desc="Red flags for errors." value={settings.sudoku.highlightMistakes} onChange={(v) => onSettingsChange({ sudoku: { ...settings.sudoku, highlightMistakes: v } })} />
@@ -63,9 +63,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
             <Toggle label="Vibrate" desc="Tactile feel." value={settings.colordle.vibrationFeedback} onChange={(v) => onSettingsChange({ colordle: { ...settings.colordle, vibrationFeedback: v } })} />
           </Section>
         )}
-        <Section title="History">
-            <Toggle label="Click Action" desc="Clicking saved game resumes (on) or shows stats (off)." value={settings.global.historyClickResumes} onChange={(v) => onSettingsChange({ global: { ...settings.global, historyClickResumes: v } })} />
-        </Section>
+        {(context === 'global' || context === 'geodle') && (
+          <Section title="Geodle">
+            <Toggle label="Units" desc="Metric (km) or Imperial (miles)." value={settings.geodle.metricUnits} onChange={(v) => onSettingsChange({ geodle: { ...settings.geodle, metricUnits: v } })} />
+            <Toggle label="Coords" desc="Show lat/lon." value={settings.geodle.showCoordinates} onChange={(v) => onSettingsChange({ geodle: { ...settings.geodle, showCoordinates: v } })} />
+            <Toggle label="Auto-Rotate" desc="Globe animation." value={settings.geodle.autoRotateGlobe} onChange={(v) => onSettingsChange({ geodle: { ...settings.geodle, autoRotateGlobe: v } })} />
+          </Section>
+        )}
         <Section title="Core">
           <Toggle label="Motion" desc="Animations." value={settings.global.animations} onChange={(v) => onSettingsChange({ global: { ...settings.global, animations: v } })} />
           <Toggle label="Haptics" desc="Device pulses." value={settings.global.haptics} onChange={(v) => onSettingsChange({ global: { ...settings.global, haptics: v } })} />
@@ -73,6 +77,28 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ context, settings, onSe
         <Section title="About">
             <button onPointerDown={() => setShowVersionHistory(true)} className="w-full text-left">
                 <p className="text-[12px] sm:text-[14px] font-bold text-zinc-900 cursor-pointer hover:text-black transition-colors">Version: {VERSION_HISTORY[VERSION_HISTORY.length - 1].version}</p>
+            </button>
+        </Section>
+        <Section title="Data">
+            <button 
+                onPointerDown={() => {
+                    if (window.confirm("Are you sure you want to clear all game history and in-progress games? This action cannot be undone.")) {
+                        localStorage.removeItem('zen_sudoku_history');
+                        localStorage.removeItem('zen_wordle_history');
+                        localStorage.removeItem('zen_colordle_history');
+                        localStorage.removeItem('zen_geodle_history');
+                        localStorage.removeItem('zen_sudoku_in_progress_list');
+                        localStorage.removeItem('zen_wordle_in_progress_list');
+                        localStorage.removeItem('zen_colordle_in_progress_list');
+                        localStorage.removeItem('zen_geodle_in_progress_list');
+                        alert("Game history has been cleared.");
+                        // Optionally trigger a state update in App.tsx to reflect the cleared history
+                        // For now, a refresh might be needed for HistoryScreen to show empty.
+                    }
+                }}
+                className="w-full py-3 sm:py-4 bg-red-500 text-white rounded-xl font-black uppercase text-[11px] shadow-sm active:scale-95 transition-all"
+            >
+                Reset All History
             </button>
         </Section>
       </main>

@@ -63,6 +63,19 @@ export const RedoIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
+export const NoteIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className || "h-6 w-6"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  </svg>
+);
+
+export const BulbIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className || "h-6 w-6"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 21V3" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343C3.111 10.575 1.5 15.011 1.5 12c0-4.418 3.582-8 8-8s8 3.582 8 8a8.001 8.001 0 01-2.343 5.657z" />
+  </svg>
+);
+
 export const SparkleIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
