@@ -266,7 +266,7 @@ const App: React.FC = () => {
       else { setView('hub'); }
       return;
     }
-    if (view.includes('-menu')) { setView('hub'); setActiveGameType(null); return; }
+    if (view.includes('-menu')) { setView('hub'); setActiveGameType(null); setDifficulty(null); return; }
   }, [view, isPaused, activeGameType, selectedHistoryGame]);
 
   const resetGameState = (targetView: View) => {
@@ -382,7 +382,7 @@ const App: React.FC = () => {
 
   const HubButton = ({ type }: { type: string }) => (
     <button 
-      onPointerDown={() => { setActiveGameType(type as any); setView(`${type}-menu` as any); }}
+      onPointerDown={() => { setActiveGameType(type as any); setView(`${type}-menu` as any); setDifficulty(null); }}
       className={`w-full py-4 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 bg-black text-white border border-zinc-100 shadow-xl group`}
     >
       <span className="text-[11px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 transition-all">{type}</span>

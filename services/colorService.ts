@@ -26,7 +26,12 @@ export async function getSemanticCloseness(guess: string, target: string): Promi
   // Apply autocorrect
   const colorNames = COLORS_LIST.map(c => c.name);
   const bestMatchName = findBestMatch(guess, colorNames);
-  const effectiveGuess = bestMatchName || guess;
+
+  if (!bestMatchName) {
+    return { percentage: 0, hex: "#808080", isValid: false };
+  }
+  
+  const effectiveGuess = bestMatchName;
   
   const guessColor = COLORS_LIST.find(c => c.name.toLowerCase() === effectiveGuess.toLowerCase());
   const targetColor = COLORS_LIST.find(c => c.name.toLowerCase() === target.toLowerCase());

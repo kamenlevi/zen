@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SparkleIcon } from './icons.tsx';
 
 interface ColordleInputProps {
@@ -22,6 +22,20 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   currentHint 
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     // Keep focus whenever component mounts or updates and not busy
@@ -68,7 +82,8 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
            <button 
              type="button"
              onPointerDown={onGetHint}
-             className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-16 h-16 rounded-full flex items-center justify-center border border-zinc-200 active:scale-90 shadow-sm"
+             disabled={!isOnline}
+             className="flex-shrink-0 bg-zinc-50 text-zinc-500 w-16 h-16 rounded-full flex items-center justify-center border border-zinc-200 active:scale-90 shadow-sm disabled:opacity-30"
            >
              <SparkleIcon className="w-8 h-8 text-black" />
            </button>
