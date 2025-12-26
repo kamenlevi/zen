@@ -25,10 +25,10 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    if (inputRef.current && !isLoading && !isHintLoading) { // Removed document.activeElement check
+    if (inputRef.current && !isLoading && !isHintLoading) {
       inputRef.current.focus();
     }
-  }, [isLoading, isHintLoading]); // Removed 'value' from dependency array
+  }, [isLoading, isHintLoading]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -42,6 +42,17 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  const handleFocus = () => {
+    // Optionally handle focus event if needed
+  };
+
+  const handleBlur = () => {
+    // Force re-focus if input loses focus, common for "always typing" experience
+    if (inputRef.current && !isLoading && !isHintLoading) {
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +77,8 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             placeholder="Type color name..."
             className="w-full bg-zinc-50 border-2 px-7 py-5 rounded-full text-lg font-bold tracking-tight outline-none border-transparent focus:border-black focus:bg-white text-black shadow-inner"
             disabled={isLoading || isHintLoading}
@@ -73,7 +86,7 @@ const ColordleInput: React.FC<ColordleInputProps> = ({
             autoFocus
             inputMode="text"
             enterKeyHint="go"
-            tabIndex={0} // Added tabIndex for explicit focusability
+            tabIndex={0}
           />
         </div>
         
