@@ -78,5 +78,12 @@ export const VERSION_HISTORY = [
             "Ensured a subtle transition back to the pause menu after closing the notes editor (animations already present).",
             "Made the 'Resume Game' button in StatisticsModal larger and black for improved visibility."
         ]
+    },
+    {
+        version: "1.3.5",
+        date: "December 26, 2025",
+        changes: [
+            "Version bump as per user request."
+        ]
     }
 ];
