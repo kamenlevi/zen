@@ -546,7 +546,7 @@ const App: React.FC = () => {
                 <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-black uppercase leading-none">{activeGameType}</h2>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-[10px] uppercase font-black tracking-[0.3em] text-zinc-400">{difficulty}</span>
-                  {settings.sudoku.timerVisible && <div className="flex items-center space-x-1 text-zinc-900 ml-2"><ClockIcon className="w-3.5 h-3.5 text-black opacity-30" /><span className="text-[12px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>}
+                  {settings.sudoku.timerVisible && <div className="flex items-center space-x-1 text-zinc-900 ml-2"><ClockIcon className="w-3.5 h-3.5 text-black" /><span className="text-[12px] tabular-nums font-black tracking-tighter">{formatTime(elapsedTime)}</span></div>}
                 </div>
               </div>
 

@@ -122,5 +122,14 @@ export const VERSION_HISTORY = [
             "Centralized Escape key handling in App.tsx for consistent pause menu behavior.",
             "Re-implemented auto-focus for NotesEditor to ensure typing without clicking, leveraging autoFocus attribute and App.tsx's centralized focus management."
         ]
+    },
+    {
+        version: "1.4.1",
+        date: "December 26, 2025",
+        changes: [
+            "Centralized Escape key handling in App.tsx for consistent pause menu behavior (fixes ESC bug).",
+            "Re-implemented auto-focus for NotesEditor with autoFocus attribute for reliable typing without clicking.",
+            "Ensured timer visibility by removing opacity-30 from ClockIcon (fixes timer visibility bug)."
+        ]
     }
 ];
