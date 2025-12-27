@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface NotesEditorProps {
   currentNotes: string;
@@ -7,8 +7,16 @@ interface NotesEditorProps {
   onClose: () => void;
 }
 
-const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ currentNotes, onSave, onClose }, ref) => {
+const NotesEditor: React.FC<NotesEditorProps> = ({ currentNotes, onSave, onClose }) => {
   const [notes, setNotes] = useState(currentNotes);
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // Internal ref
+
+  useEffect(() => {
+    // Automatically focus the textarea when the component mounts
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []); // Run once on mount
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -40,8 +48,8 @@ const NotesEditor = React.forwardRef<HTMLTextAreaElement, NotesEditorProps>(({ c
         </header>
 
         <textarea
-          ref={ref} // Restore original ref usage
-          autoFocus // Re-added autoFocus
+          ref={textareaRef} // Use internal ref
+          autoFocus // Re-add autoFocus
           className="flex-grow w-full h-40 bg-zinc-50 border border-zinc-200 rounded-2xl p-4 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-black resize-none"
           placeholder="Write your notes here..."
           value={notes}

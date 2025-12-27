@@ -131,5 +131,13 @@ export const VERSION_HISTORY = [
             "Re-implemented auto-focus for NotesEditor with autoFocus attribute for reliable typing without clicking.",
             "Ensured timer visibility by removing opacity-30 from ClockIcon (fixes timer visibility bug)."
         ]
+    },
+    {
+        version: "1.5.0",
+        date: "December 26, 2025",
+        changes: [
+            "Implemented robust state management for game pause, pause menu visibility, and NotesEditor interaction. This separates game logic pause from UI visibility, resolving issues with the pause button and notes menu behavior.",
+            "Refactored NotesEditor to a standard functional component with internal focus management (autoFocus attribute and useEffect for initial focus)."
+        ]
     }
 ];

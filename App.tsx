@@ -82,6 +82,7 @@ const App: React.FC = () => {
   const [completionExplanation, setCompletionExplanation] = useState<string | undefined>(undefined);
   const [completedGameSolution, setCompletedGameSolution] = useState<string | Grid | null>(null); // New state variable
   const [isPaused, setIsPaused] = useState(false);
+  const [isPauseMenuVisible, setIsPauseMenuVisible] = useState(false); // New state for PauseMenu visibility
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -94,19 +95,21 @@ const App: React.FC = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const colordleInputRef = useRef<HTMLInputElement>(null); // New ref
   const geodleInputRef = useRef<HTMLInputElement>(null);
-  const notesEditorRef = useRef<HTMLTextAreaElement>(null); // New ref for NotesEditor // New ref // New ref for game container
 
   useEffect(() => {
     const saved = localStorage.getItem('zen_settings');
     if (saved) { try { setSettings(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
+  // Effect to manage isPaused (game logic) based on UI states
   useEffect(() => {
-    // Centralized focus management
-    if (!isPaused && !selectedHistoryGame) { // Notes editor also takes focus, so it's a separate condition
-      if (showNotesEditor && notesEditorRef.current) {
-        notesEditorRef.current.focus();
-      } else if (view === 'wordle-game' && gameContainerRef.current) {
+      setIsPaused(isPauseMenuVisible || showNotesEditor || isWon || isLost);
+  }, [isPauseMenuVisible, showNotesEditor, isWon, isLost]);
+
+  // Effect to focus the relevant input/game area
+  useEffect(() => {
+    if (!isPauseMenuVisible && !showNotesEditor && !selectedHistoryGame) {
+      if (view === 'wordle-game' && gameContainerRef.current) {
         gameContainerRef.current.focus();
       } else if (view === 'colordle-game' && colordleInputRef.current) {
         colordleInputRef.current.focus();
@@ -114,7 +117,7 @@ const App: React.FC = () => {
         geodleInputRef.current.focus();
       }
     }
-  }, [view, isPaused, showNotesEditor, selectedHistoryGame]); // Dependencies to re-evaluate focus
+  }, [view, isPauseMenuVisible, showNotesEditor, selectedHistoryGame]);
 
   const handleSettingsChange = (newSettings: Partial<GameSettings>) => {
     const updated = { ...settings, ...newSettings };
@@ -310,7 +313,8 @@ const App: React.FC = () => {
 
   const handleBack = useCallback(() => {
     if (selectedHistoryGame) { setSelectedHistoryGame(null); return; }
-    if (isPaused) { setIsPaused(false); return; }
+    if (showNotesEditor) { setShowNotesEditor(false); return; } // Close notes first
+    if (isPauseMenuVisible) { setIsPauseMenuVisible(false); return; } // Close pause menu
     if (view === 'hub') return;
     if (view === 'history' || view === 'settings') {
       if (activeGameType) setView(`${activeGameType}-menu` as View);
@@ -318,15 +322,15 @@ const App: React.FC = () => {
       return;
     }
     if (view.includes('-game')) {
-      if (activeGameType) { setView(`${activeGameType}-menu` as View); setIsPaused(false); setDifficulty(null); }
+      if (activeGameType) { setView(`${activeGameType}-menu` as View); setDifficulty(null); }
       else { setView('hub'); }
       return;
     }
     if (view.includes('-menu')) { setView('hub'); setActiveGameType(null); setDifficulty(null); return; }
-  }, [view, isPaused, activeGameType, selectedHistoryGame]);
+  }, [view, isPauseMenuVisible, showNotesEditor, activeGameType, selectedHistoryGame]);
 
   const resetGameState = (targetView: View) => {
-    setIsWon(false); setIsLost(false); setIsPaused(false); setElapsedTime(0); setStartTime(Date.now());
+    setIsWon(false); setIsLost(false); setIsPaused(false); setIsPauseMenuVisible(false); setElapsedTime(0); setStartTime(Date.now());
     setCompletionExplanation(undefined); setCurrentNotes(''); setCurrentNotes('');
     setMoveHistory([]); setView(targetView); setCurrentGuess(''); setKeyStatus({}); setWordleResults([]); 
     setGuesses([]); setColordleGuesses([]); setGeodleGuesses([]);
@@ -533,7 +537,7 @@ const App: React.FC = () => {
                   <ChevronLeftIcon className="w-8 h-8 text-white" />
                 </button>
                 <div className="flex items-center"> {/* Group Pause and Notes buttons */}
-                  <button onPointerDown={() => setIsPaused(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm">
+                  <button onPointerDown={() => setIsPauseMenuVisible(p => !p)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm">
                     <PauseIcon className="w-8 h-8 text-black" />
                   </button>
                   <button onPointerDown={() => setShowNotesEditor(true)} className="w-14 h-14 bg-zinc-50 rounded-full border border-zinc-100 flex items-center justify-center active:scale-90 shadow-sm ml-2">
@@ -565,7 +569,7 @@ const App: React.FC = () => {
                 {view === 'geodle-game' && <div className="z-[65] ios-bottom-bar bg-white pt-4 shadow-sm"><GeodleInput ref={geodleInputRef} value={currentGuess} onChange={setCurrentGuess} onGuess={handleGeodleSubmit} onGetHint={async () => { setIsGeoHintLoading(true); const h = await getGeoHint(targetCountry); setIsGeoHintLoading(false); setGeodleHint(h); }} isLoading={isGeoLoading} isHintLoading={isGeoHintLoading} currentHint={geodleHint} /></div>}
               </div>
 
-              {isPaused && <PauseMenu onResume={() => setIsPaused(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(activeGameType); setIsPaused(false); }} onRestart={() => resetGameState(`${activeGameType}-game` as View)} gameType={activeGameType!} notes={currentNotes} />}
+              {isPauseMenuVisible && <PauseMenu onResume={() => setIsPauseMenuVisible(false)} onExit={() => { setView(`${activeGameType}-menu` as View); setActiveGameType(null); setIsPauseMenuVisible(false); }} onRestart={() => { resetGameState(`${activeGameType}-game` as View); setIsPauseMenuVisible(false); }} gameType={activeGameType!} notes={currentNotes} />}
               {(isWon || isLost) && !isPaused && (
                 <CompletionMenu
                   gameType={activeGameType!}
@@ -583,7 +587,7 @@ const App: React.FC = () => {
         </div>
       )}
       {selectedHistoryGame && <StatisticsModal game={selectedHistoryGame} onClose={() => setSelectedHistoryGame(null)} onBringToGame={handleContinueGame} />}
-      {showNotesEditor && <NotesEditor ref={notesEditorRef} currentNotes={currentNotes} onSave={setCurrentNotes} onClose={() => setShowNotesEditor(false)} />}
+      {showNotesEditor && <NotesEditor currentNotes={currentNotes} onSave={setCurrentNotes} onClose={() => setShowNotesEditor(false)} />}
     </div>
   );
 };
